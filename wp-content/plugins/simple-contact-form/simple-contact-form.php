@@ -37,8 +37,7 @@ class SimpleContactForm
         $args = array(
             'public' => true,
             'has_archive' => true,
-            // 'supports' => array('title', 'editor', 'custom-fields'),
-            // 'supports' => array('title'),
+            'supports' => array('title'),
             'exclude_from_search' => true,
             'capability' => 'manage_options',
             'labels' => array(
@@ -97,16 +96,16 @@ class SimpleContactForm
             <p>Please fill out the form below to get in touch with us.</p>
             <form id="simple-contact-form__form">
                 <div class="form-group mb-2">
-                    <input type="text" name="name" class="form-control" placeholder="Name">
+                    <input type="text" name="name" class="form-control" placeholder="Name" required>
                 </div>
                 <div class="form-group mb-2">
-                    <input type="email" name="email" class="form-control" placeholder="Email">
+                    <input type="email" name="email" class="form-control" placeholder="Email" required>
                 </div>
                 <div class="form-group mb-2">
                     <input type="tel" name="phone" class="form-control" placeholder="Phone">
                 </div>
                 <div class="form-group mb-2">
-                    <textarea name="message" class="form-control" placeholder="Type your Message"></textarea>
+                    <textarea name="message" class="form-control" placeholder="Type your Message" required></textarea>
                 </div>
                 <button type="submit" class="btn btn-success btn-lock w-100">Send</button>
             </form>
@@ -127,7 +126,15 @@ class SimpleContactForm
                         method: 'post',
                         url: '<?php echo get_rest_url(null, 'simple-contact-form/v1/send-email'); ?>',
                         headers: { 'X-WP-Nonce': nonce },
-
+                        data: form,
+                        success: function (response) {
+                            alert('Thank you! Your message has been sent.');
+                            $('#simple-contact-form__form')[0].reset();
+                        },
+                        error: function (xhr, status, error) {
+                            alert('Sorry, there was an error sending your message. Please try again.');
+                            console.error('Error:', error);
+                        }
                     })
 
                 })
@@ -146,24 +153,46 @@ class SimpleContactForm
 
     public function handle_contact_form($data)
     {
-        // echo $data;
         $headers = $data->get_headers();
         $params = $data->get_params();
         $nonce = $headers['x_wp_nonce'][0];
-        echo json_encode($data);
-        // echo json_encode($headers);
+
         if (!wp_verify_nonce($nonce, 'wp_rest')) {
             return new WP_REST_Response('Message not sent', 422);
         }
 
-        // $post_id = wp_insert_post([
-        //     'post_type' => 'contact_form',
-        //     'post_title' => $params['name'],
-        //     'post_status' => 'publish'
-        // ]);
-        // if ($post_id) {
-        //     return new WP_REST_Response('Thank you for your email', 200);
-        // }
+        // Extract form data
+        $name = sanitize_text_field($params['name'] ?? '');
+        $email = sanitize_email($params['email'] ?? '');
+        $phone = sanitize_text_field($params['phone'] ?? '');
+        $message = sanitize_textarea_field($params['message'] ?? '');
+
+        // Validate required fields
+        if (empty($name) || empty($email) || empty($message)) {
+            return new WP_REST_Response('Please fill in all required fields', 400);
+        }
+
+        if (!is_email($email)) {
+            return new WP_REST_Response('Please enter a valid email address', 400);
+        }
+
+        $post_id = wp_insert_post([
+            'post_type' => 'contact_form',
+            'post_title' => 'Contact from ' . $name . ' - ' . date('Y-m-d H:i:s'),
+            'post_status' => 'publish'
+        ]);
+
+        if ($post_id) {
+            // Store form data as post meta
+            update_post_meta($post_id, '_contact_name', $name);
+            update_post_meta($post_id, '_contact_email', $email);
+            update_post_meta($post_id, '_contact_phone', $phone);
+            update_post_meta($post_id, '_contact_message', $message);
+
+            return new WP_REST_Response('Thank you for your email', 200);
+        } else {
+            return new WP_REST_Response('Failed to save your message', 500);
+        }
     }
 
 
