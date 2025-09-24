@@ -28,14 +28,14 @@ function pc_crud_create_tables()
     $table_details = $wpdb->prefix . 'product_details';
 
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta("CREATE TABLE $table_categories (
+    dbDelta("CREATE TABLE IF NOT EXISTS $table_categories (
         id mediumint(9) NOT NULL AUTO_INCREMENT,
         name varchar(100) NOT NULL,
         created_at datetime DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id)
     ) $charset_collate;");
 
-    dbDelta("CREATE TABLE $table_products (
+    dbDelta("CREATE TABLE IF NOT EXISTS $table_products (
         id mediumint(9) NOT NULL AUTO_INCREMENT,
         name varchar(100) NOT NULL,
         price float NOT NULL,
@@ -45,7 +45,7 @@ function pc_crud_create_tables()
         FOREIGN KEY (category_id) REFERENCES $table_categories(id) ON DELETE CASCADE
     ) $charset_collate;");
 
-    dbDelta("CREATE TABLE $table_details (
+    dbDelta("CREATE TABLE IF NOT EXISTS $table_details (
         id mediumint(9) NOT NULL AUTO_INCREMENT,
         product_id mediumint(9) NOT NULL,
         size varchar(50) NOT NULL,
@@ -96,6 +96,25 @@ function pc_crud_admin_page()
             'price' => $price,
             'category_id' => $cat_id
         ], ['id' => $prod_id]);
+
+        // Xóa chi tiết cũ và thêm mới
+        $table_details = $wpdb->prefix . 'product_details';
+        $wpdb->delete($table_details, ['product_id' => $prod_id]);
+        if (!empty($_POST['size']) && is_array($_POST['size'])) {
+            foreach ($_POST['size'] as $i => $size) {
+                $size = sanitize_text_field($size);
+                $quantity = intval($_POST['quantity'][$i]);
+                $image_url = esc_url_raw($_POST['image_url'][$i]);
+                if ($size !== '') {
+                    $wpdb->insert($table_details, [
+                        'product_id' => $prod_id,
+                        'size' => $size,
+                        'quantity' => $quantity,
+                        'image_url' => $image_url
+                    ]);
+                }
+            }
+        }
         echo '<div class="updated"><p>Cập nhật product thành công!</p></div>';
     }
 
@@ -116,6 +135,25 @@ function pc_crud_admin_page()
             'price' => $price,
             'category_id' => $cat_id
         ]);
+        $product_id = $wpdb->insert_id;
+
+        // Lưu chi tiết size
+        if (!empty($_POST['size']) && is_array($_POST['size'])) {
+            $table_details = $wpdb->prefix . 'product_details';
+            foreach ($_POST['size'] as $i => $size) {
+                $size = sanitize_text_field($size);
+                $quantity = intval($_POST['quantity'][$i]);
+                $image_url = esc_url_raw($_POST['image_url'][$i]);
+                if ($size !== '') {
+                    $wpdb->insert($table_details, [
+                        'product_id' => $product_id,
+                        'size' => $size,
+                        'quantity' => $quantity,
+                        'image_url' => $image_url
+                    ]);
+                }
+            }
+        }
         echo '<div class="updated"><p>Thêm product thành công!</p></div>';
     }
 
@@ -172,25 +210,51 @@ function pc_crud_admin_page()
     echo '<form method="post">';
     if ($edit_prod) {
         echo '<input type="hidden" name="prod_id" value="' . esc_attr($edit_prod->id) . '">';
-        echo '<input type="text" name="prod_name" required value="' . esc_attr($edit_prod->name) . '" placeholder="Product name">';
-        echo '<input type="number" step="0.01" name="prod_price" required value="' . esc_attr($edit_prod->price) . '" placeholder="Price">';
+        echo '<input type="text" name="prod_name" required value="' . esc_attr($edit_prod->name) . '" placeholder="Product name"><br>';
+        echo '<input type="number" step="0.01" name="prod_price" required value="' . esc_attr($edit_prod->price) . '" placeholder="Price"><br>';
         echo '<select name="prod_category" required>';
         foreach ($categories as $cat) {
             $selected = ($edit_prod->category_id == $cat->id) ? 'selected' : '';
             echo '<option value="' . esc_attr($cat->id) . '" ' . $selected . '>' . esc_html($cat->name) . '</option>';
         }
-        echo '</select>';
-        echo '<input type="submit" name="update_product" value="Cập nhật Product" class="button button-primary">';
-        echo '<a href="?page=pc-crud" class="button">Hủy</a>';
+        echo '</select><br>';
+        // Lấy chi tiết cũ
+        $table_details = $wpdb->prefix . 'product_details';
+        $details = $wpdb->get_results("SELECT * FROM $table_details WHERE product_id = " . intval($edit_prod->id));
     } else {
-        echo '<input type="text" name="prod_name" required placeholder="Product name">';
-        echo '<input type="number" step="0.01" name="prod_price" required placeholder="Price">';
+        echo '<input type="text" name="prod_name" required placeholder="Product name"><br>';
+        echo '<input type="number" step="0.01" name="prod_price" required placeholder="Price"><br>';
         echo '<select name="prod_category" required>';
         echo '<option value="">Chọn Category</option>';
         foreach ($categories as $cat) {
             echo '<option value="' . esc_attr($cat->id) . '">' . esc_html($cat->name) . '</option>';
         }
-        echo '</select>';
+        echo '</select><br>';
+        $details = [];
+    }
+
+    // Form nhập size/quantity/image
+    echo '<h3>Size & Chi tiết:</h3>';
+    echo '<div id="size-container">';
+    $count = max(1, count($details));
+    for ($i = 0; $i < $count; $i++) {
+        $size = isset($details[$i]) ? esc_attr($details[$i]->size) : '';
+        $qty = isset($details[$i]) ? esc_attr($details[$i]->quantity) : '';
+        $img = isset($details[$i]) ? esc_attr($details[$i]->image_url) : '';
+        echo '<div class="size-row">';
+        echo 'Size: <input type="text" name="size[]" value="' . $size . '" placeholder="S,M,L..."> ';
+        echo 'Qty: <input type="number" name="quantity[]" value="' . $qty . '" placeholder="10"> ';
+        echo 'Image: <input type="text" name="image_url[]" value="' . $img . '" placeholder="http://..."> ';
+        echo '<button type="button" onclick="removeRow(this)">Xóa</button><br>';
+        echo '</div>';
+    }
+    echo '</div>';
+    echo '<button type="button" onclick="addRow()">+ Thêm Size</button><br><br>';
+
+    if ($edit_prod) {
+        echo '<input type="submit" name="update_product" value="Cập nhật" class="button button-primary">';
+        echo '<a href="?page=pc-crud" class="button">Hủy</a>';
+    } else {
         echo '<input type="submit" name="add_product" value="Thêm Product" class="button button-primary">';
     }
     echo '</form>';
@@ -199,14 +263,22 @@ function pc_crud_admin_page()
     $products = $wpdb->get_results("SELECT p.*, c.name as category_name FROM $table_products p LEFT JOIN $table_categories c ON p.category_id = c.id ORDER BY p.id DESC");
     echo '<h2>Danh sách Products</h2>';
     echo '<table class="widefat striped">
-        <thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Category</th><th>Created At</th><th>Actions</th></tr></thead><tbody>';
+        <thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Category</th><th>Sizes</th><th>Actions</th></tr></thead><tbody>';
     foreach ($products as $prod) {
+        // Lấy chi tiết size cho product này
+        $table_details = $wpdb->prefix . 'product_details';
+        $sizes = $wpdb->get_results("SELECT * FROM $table_details WHERE product_id = " . intval($prod->id));
+        $size_info = '';
+        foreach ($sizes as $s) {
+            $size_info .= $s->size . ' (Qty:' . $s->quantity . ') ';
+        }
+
         echo '<tr>
             <td>' . esc_html($prod->id) . '</td>
             <td>' . esc_html($prod->name) . '</td>
             <td>' . esc_html($prod->price) . '</td>
             <td>' . esc_html($prod->category_name) . '</td>
-            <td>' . esc_html($prod->created_at) . '</td>
+            <td>' . esc_html($size_info) . '</td>
             <td>
                 <a href="?page=pc-crud&edit_product=' . $prod->id . '" class="button">Sửa</a> '
             . '<a href="?page=pc-crud&delete_product=' . $prod->id . '" class="button button-danger" onclick="return confirm(\'Xóa product này?\');">Xóa</a>' . '
@@ -215,3 +287,16 @@ function pc_crud_admin_page()
     }
     echo '</tbody></table>';
 }
+?>
+<script>
+    function addRow() {
+        var container = document.getElementById('size-container');
+        var div = document.createElement('div');
+        div.className = 'size-row';
+        div.innerHTML = 'Size: <input type="text" name="size[]" placeholder="S,M,L..."> Qty: <input type="number" name="quantity[]" placeholder="10"> Image: <input type="text" name="image_url[]" placeholder="http://..."> <button type="button" onclick="removeRow(this)">Xóa</button><br>';
+        container.appendChild(div);
+    }
+    function removeRow(btn) {
+        btn.parentElement.remove();
+    }
+</script>
