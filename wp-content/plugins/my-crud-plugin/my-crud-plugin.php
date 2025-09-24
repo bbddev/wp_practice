@@ -81,11 +81,29 @@ function my_crud_plugin_admin_page()
             </table>
         </form>
     </div>
-
-
-
-
     <?php
+    // Fetch data in ASC Order
+    $results = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}my_crud_data ORDER BY id ASC");
+    if ($results) {
+        echo '<h2> Saved Records</h2>';
+        echo '<table class="widefat fixed striped">';
+        echo '<thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Created At</th><th>Actions</th></tr></thead>';
+        echo '<tbody>';
+        foreach ($results as $row) {
+            echo '<tr>';
+            echo '<td>' . esc_html($row->id) . '</td>';
+            echo '<td>' . esc_html($row->name) . '</td>';
+            echo '<td>' . esc_html($row->email) . '</td>';
+            echo '<td>' . esc_html($row->create_at) . '</td>';
+            echo '<td>';
+            echo '<a href="" class="button">Edit</a>';
+            echo '<a href="" class="button button-danger" onclick="return confirm(\'Are you sure you want to delete this record?\');">Delete</a>';
+            echo '</td>';
+            echo '</tr>';
+        }
+        echo '</tbody>';
+        echo '</table>';
+    }
 }
 
 register_activation_hook(__FILE__, 'my_crud_plugin_create_table');
