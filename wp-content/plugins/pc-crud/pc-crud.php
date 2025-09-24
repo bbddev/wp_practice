@@ -52,6 +52,20 @@ function pc_crud_admin_page()
     $table_products = $wpdb->prefix . 'products';
     $table_categories = $wpdb->prefix . 'categories';
 
+    // Xóa category
+    if (isset($_GET['delete_category'])) {
+        $cat_id = intval($_GET['delete_category']);
+        $wpdb->delete($table_categories, ['id' => $cat_id]);
+        echo '<div class="updated"><p>Xóa category thành công!</p></div>';
+    }
+
+    // Xóa product
+    if (isset($_GET['delete_product'])) {
+        $prod_id = intval($_GET['delete_product']);
+        $wpdb->delete($table_products, ['id' => $prod_id]);
+        echo '<div class="updated"><p>Xóa product thành công!</p></div>';
+    }
+
     // Thêm category
     if (isset($_POST['add_category'])) {
         $cat_name = sanitize_text_field($_POST['cat_name']);
@@ -73,7 +87,7 @@ function pc_crud_admin_page()
     }
 
     // Lấy danh sách categories
-    $categories = $wpdb->get_results("SELECT * FROM $table_categories ORDER BY name ASC");
+    $categories = $wpdb->get_results("SELECT * FROM $table_categories ORDER BY id ASC");
 
     // Form thêm category
     echo '<h2>Thêm Category</h2>
@@ -81,6 +95,20 @@ function pc_crud_admin_page()
         <input type="text" name="cat_name" required placeholder="Category name">
         <input type="submit" name="add_category" value="Thêm Category" class="button button-primary">
     </form>';
+
+    // Hiển thị danh sách categories
+    echo '<h2>Danh sách Categories</h2>
+    <table class="widefat striped">
+        <thead><tr><th>ID</th><th>Name</th><th>Created At</th><th>Actions</th></tr></thead><tbody>';
+    foreach ($categories as $cat) {
+        echo '<tr>
+            <td>' . esc_html($cat->id) . '</td>
+            <td>' . esc_html($cat->name) . '</td>
+            <td>' . esc_html($cat->created_at) . '</td>
+            <td><a href="?page=pc-crud&delete_category=' . $cat->id . '" class="button button-danger" onclick="return confirm(\'Xóa category này?\');">Xóa</a></td>
+        </tr>';
+    }
+    echo '</tbody></table>';
 
     // Form thêm product
     echo '<h2>Thêm Product</h2>
@@ -100,7 +128,7 @@ function pc_crud_admin_page()
     $products = $wpdb->get_results("SELECT p.*, c.name as category_name FROM $table_products p LEFT JOIN $table_categories c ON p.category_id = c.id ORDER BY p.id DESC");
     echo '<h2>Danh sách Products</h2>
     <table class="widefat striped">
-        <thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Category</th><th>Created At</th></tr></thead><tbody>';
+        <thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Category</th><th>Created At</th><th>Actions</th></tr></thead><tbody>';
     foreach ($products as $prod) {
         echo '<tr>
             <td>' . esc_html($prod->id) . '</td>
@@ -108,6 +136,7 @@ function pc_crud_admin_page()
             <td>' . esc_html($prod->price) . '</td>
             <td>' . esc_html($prod->category_name) . '</td>
             <td>' . esc_html($prod->created_at) . '</td>
+            <td><a href="?page=pc-crud&delete_product=' . $prod->id . '" class="button button-danger" onclick="return confirm(\'Xóa product này?\');">Xóa</a></td>
         </tr>';
     }
     echo '</tbody></table>';
