@@ -33,6 +33,18 @@ function my_crud_plugin_menu()
 function my_crud_plugin_admin_page()
 {
     global $wpdb;
+    //for delete code
+    if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
+        $table_name = $wpdb->prefix . 'my_crud_data';
+        $id = intval($_GET['id']);
+        $deleted = $wpdb->delete($table_name, ['id' => $id]);
+        if ($deleted) {
+            echo '<div class="updated"><p>Record deleted successfully!</p></div>';
+        } else {
+            echo '<div class="error"><p>Error deleting record.</p></div>';
+        }
+    }
+    // Handle form submission
     if (isset($_POST['my_crud_submit'])) {
         $name = sanitize_text_field($_POST['name'] ?? '');
         $email = sanitize_email($_POST['email'] ?? '');
@@ -47,10 +59,7 @@ function my_crud_plugin_admin_page()
         echo '<div class="updated"><p>Data added successfully!</p></div>';
     }
     ?>
-    <!-- <div class="wrap">
-        <h1>My CRUD Plugin</h1>
-        <p>Welcome to the CRUD system. More feature</p>
-    </div> -->
+   
 
     <div class="wrap">
         <h1>My CRUD Plugin</h1>
@@ -96,8 +105,8 @@ function my_crud_plugin_admin_page()
             echo '<td>' . esc_html($row->email) . '</td>';
             echo '<td>' . esc_html($row->create_at) . '</td>';
             echo '<td>';
-            echo '<a href="" class="button">Edit</a>';
-            echo '<a href="" class="button button-danger" onclick="return confirm(\'Are you sure you want to delete this record?\');">Delete</a>';
+            echo '<a href="?page=my-crud-plugin&action=edit&id=' . $row->id . '" class="button">Edit</a>';
+            echo '<a href="?page=my-crud-plugin&action=delete&id=' . $row->id . '" class="button button-danger" onclick="return confirm(\'Are you sure you want to delete this record?\');">Delete</a>';
             echo '</td>';
             echo '</tr>';
         }
