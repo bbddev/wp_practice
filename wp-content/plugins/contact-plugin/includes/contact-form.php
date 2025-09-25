@@ -6,6 +6,31 @@ add_action('rest_api_init', 'create_rest_endpoint');
 
 add_action('init', 'create_submissions_page');
 
+add_action('add_meta_boxes', 'create_meta_box');
+
+function create_meta_box()
+{
+    add_meta_box('custom_contact_form', 'Submission', 'display_submission', 'submission');
+}
+
+function display_submission()
+{
+    $post_metas = get_post_meta(get_the_ID());
+    unset($post_metas['_edit_lock']);
+    echo '<ul>';
+
+    // foreach ($post_metas as $key => $value) {
+    //     echo '<li><strong>' . ucfirst($key) . ':</strong> ' . $value[0] . '</li>';
+    // }
+
+    echo '<li><strong>Name</strong> : ' . get_post_meta(get_the_ID(), 'name', true) . '</li>';
+    echo '<li><strong>Email</strong> : ' . get_post_meta(get_the_ID(), 'email', true) . '</li>';
+    echo '<li><strong>Phone</strong> : ' . get_post_meta(get_the_ID(), 'phone', true) . '</li>';
+    echo '<li><strong>Message</strong> : ' . get_post_meta(get_the_ID(), 'message', true) . '</li>';
+
+    echo '</ul>';
+}
+
 function create_submissions_page()
 {
     $args = [
@@ -15,8 +40,10 @@ function create_submissions_page()
             'name' => 'Submissions',
             'singular_name' => 'Submission'
         ],
-        // 'capabilities' => ['create_posts' => 'do_not_allow'],
-        'supports' => ['custom-fields']
+        'supports' => false,
+        'capability_type' => 'post',
+        'capabilities' => ['create_posts' => false],
+        'map_meta_cap' => true,
     ];
     register_post_type('submission', $args);
 }
@@ -63,6 +90,7 @@ function handle_enquiry($data)
     $postarr = [
         'post_title' => $params['name'],
         'post_type' => 'submission', // custom post type
+        'post_status' => 'publish'
     ];
 
     $post_id = wp_insert_post($postarr);
