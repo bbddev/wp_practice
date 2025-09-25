@@ -1,0 +1,133 @@
+# WordPress specific files
+wp-config.php
+wp-config-local.php
+wp-config-production.php
+wp-config-staging.php
+wp-config-development.php
+wp-cli.local.yml
+sql-dump-*.sql
+db-sync
+debug.log
+
+# WordPress Core Files (nếu bạn không muốn track WordPress core)
+# Uncomment các dòng dưới nếu bạn chỉ muốn track themes và plugins
+# /index.php
+# /license.txt
+# /readme.html
+# /wp-activate.php
+# /wp-blog-header.php
+# /wp-comments-post.php
+# /wp-config-sample.php
+# /wp-cron.php
+# /wp-links-opml.php
+# /wp-load.php
+# /wp-login.php
+# /wp-mail.php
+# /wp-settings.php
+# /wp-signup.php
+# /wp-trackback.php
+# /xmlrpc.php
+# /wp-admin/
+# /wp-includes/
+
+# Uploads directory (thường chứa media files)
+wp-content/uploads/
+wp-content/upgrade/
+wp-content/backups/
+wp-content/backup-db/
+wp-content/cache/
+wp-content/w3tc-config/
+
+# Themes và Plugins (nếu bạn không phát triển)
+# Uncomment để ignore tất cả themes và plugins
+# wp-content/themes/
+# wp-content/plugins/
+
+# Nhưng keep các plugins bạn đang phát triển
+!wp-content/plugins/contact-plugin/
+!wp-content/plugins/my-crud-plugin/
+!wp-content/plugins/pc-crud/
+!wp-content/plugins/simple-contact-form/
+
+# Ignore default themes
+wp-content/themes/twenty*/
+
+# Log files
+*.log
+wp-content/debug.log
+error_log
+
+# Backup files
+*.bak
+*.swp
+*.tmp
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Dependency directories
+node_modules/
+bower_components/
+
+# Composer
+vendor/
+# Ignore vendor directories trong tất cả plugins
+wp-content/plugins/*/vendor/
+
+# Package managers
+package-lock.json
+yarn.lock
+composer.lock
+
+# Build files
+/build/
+/dist/
+*.min.js
+*.min.css
+/assets/build/
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.staging
+
+# XAMPP specific
+.htaccess
+
+# WordPress installation files
+wp-config-sample.php
+
+# Plugin and theme development
+*.zip
+*.tar.gz
+
+# Security
+.htpasswd
+.htaccess.bak
+
+# Sitemap files
+sitemap.xml
+sitemap.xml.gz
+
+# Cache files
+wp-content/cache/
+wp-content/w3tc/
