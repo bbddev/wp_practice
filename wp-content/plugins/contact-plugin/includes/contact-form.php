@@ -17,7 +17,37 @@ function create_rest_endpoint()
     ));
 }
 
-function handle_enquiry()
+function handle_enquiry($data)
 {
-    echo 'Hello there';
+    $params = $data->get_params();
+
+    if (!wp_verify_nonce($params['_wpnonce'], 'wp_rest')) {
+        return new WP_Rest_Response('Message not sent', 422);
+    }
+
+    unset($params['_wpnonce']);
+    unset($params['_wp_http_referer']);
+
+    // Send the email message
+    $headers = [];
+
+    $admin_email = get_bloginfo('admin_email');
+    $admin_name = get_bloginfo('name');
+
+    $headers[] = "From: {$admin_name} <{$admin_email}>";
+    $headers[] = "Reply-to: {$params['name']} <{$params['email']}>";
+    $headers[] = "Content-type: text/html";
+
+    $subject = "New enquiry from {$params['name']}";
+
+    $message = '';
+    $message .= "Message has been sent from {$params['name']} <br/> <br/>";
+
+    foreach ($params as $label => $value) {
+        $message .= "<strong>" . ucfirst($label) . ":</strong> " . $value . "<br/>";
+    }
+
+    wp_mail($admin_email, $subject, $message, $headers);
+
+    return new WP_Rest_Response('Message sent', 200);
 }
