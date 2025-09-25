@@ -11,7 +11,7 @@ function show_contact_form()
 
 function create_rest_endpoint()
 {
-    register_rest_route('v1_contact-form', 'submit', array(
+    register_rest_route('v1/contact-form', 'submit', array(
         'methods' => 'POST',
         'callback' => 'handle_enquiry'
     ));
