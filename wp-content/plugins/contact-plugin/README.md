@@ -1,20 +1,22 @@
 
 
 https://docs.carbonfields.net/quickstart.html
-<!-- viết câu lệnh này để cài đặt thư viện -->
-Trong README hướng dẫn chạy composer install sau khi clone
-CI/CD pipeline cần chạy composer install khi deploy
 
 
 
-00:00 Start
+
+<!-- 00:00 Start
 00:20 Basic Introduction
 02:40 Plugin Folder setup
 03:20 Securing your plugin
-<!-- tạo thêm file index để tránh bị lỗ hỏng bảo mật -->
+==> tạo thêm file index để tránh bị lỗ hỏng bảo mật -->
 
 <!-- 08:17 Create your Plugin Class -->
-<!-- 09:28 Installing Carbon Fields into Plugin via Composer -->
+
+<!-- 09:28 Installing Carbon Fields into Plugin via Composer 
+viết câu lệnh này để cài đặt thư viện
+Trong README hướng dẫn chạy composer install sau khi clone
+CI/CD pipeline cần chạy composer install khi deploy -->
 composer require htmlburger/carbon-fields
 
 <!-- 13:19 Set up Composer Autoload & Constant for Plugin Path -->
