@@ -1,5 +1,9 @@
 <?php
 
+if (!defined('ABSPATH')) {
+    die('You cannot be bypassed'); // Exit if accessed directly.
+}
+
 add_shortcode('contact', 'show_contact_form');
 
 add_action('rest_api_init', 'create_rest_endpoint');
@@ -56,16 +60,16 @@ function fill_submission_columns($column, $post_id)
 {
     switch ($column) {
         case 'name':
-            echo get_post_meta($post_id, 'name', true);
+            echo esc_html(get_post_meta($post_id, 'name', true));
             break;
         case 'email':
-            echo get_post_meta($post_id, 'email', true);
+            echo esc_html(get_post_meta($post_id, 'email', true));
             break;
         case 'phone':
-            echo get_post_meta($post_id, 'phone', true);
+            echo esc_html(get_post_meta($post_id, 'phone', true));
             break;
         case 'message':
-            echo get_post_meta($post_id, 'message', true);
+            echo esc_html(get_post_meta($post_id, 'message', true));
             break;
     }
 }
@@ -94,13 +98,13 @@ function display_submission()
     echo '<ul>';
 
     // foreach ($post_metas as $key => $value) {
-    //     echo '<li><strong>' . ucfirst($key) . ':</strong> ' . $value[0] . '</li>';
+    //     echo '<li><strong>' . ucfirst($key) . ':</strong> ' . esc_html($value[0]) . '</li>';
     // }
 
-    echo '<li><strong>Name</strong> : ' . get_post_meta(get_the_ID(), 'name', true) . '</li>';
-    echo '<li><strong>Email</strong> : ' . get_post_meta(get_the_ID(), 'email', true) . '</li>';
-    echo '<li><strong>Phone</strong> : ' . get_post_meta(get_the_ID(), 'phone', true) . '</li>';
-    echo '<li><strong>Message</strong> : ' . get_post_meta(get_the_ID(), 'message', true) . '</li>';
+    echo '<li><strong>Name</strong> : ' . esc_html(get_post_meta(get_the_ID(), 'name', true)) . '</li>';
+    echo '<li><strong>Email</strong> : ' . esc_html(get_post_meta(get_the_ID(), 'email', true)) . '</li>';
+    echo '<li><strong>Phone</strong> : ' . esc_html(get_post_meta(get_the_ID(), 'phone', true)) . '</li>';
+    echo '<li><strong>Message</strong> : ' . esc_html(get_post_meta(get_the_ID(), 'message', true)) . '</li>';
 
     echo '</ul>';
 }
@@ -139,6 +143,14 @@ function handle_enquiry($data)
 {
     $params = $data->get_params();
 
+    // Set fields from the form
+    $field_name = sanitize_text_field($params['name']);
+    $field_email = sanitize_email($params['email']);
+    $field_phone = sanitize_text_field($params['phone']);
+    $field_message = sanitize_textarea_field($params['message']);
+
+
+
     if (!wp_verify_nonce($params['_wpnonce'], 'wp_rest')) {
         return new WP_Rest_Response('Message not sent', 422);
     }
@@ -153,16 +165,16 @@ function handle_enquiry($data)
     $admin_name = get_bloginfo('name');
 
     $headers[] = "From: {$admin_name} <{$admin_email}>";
-    $headers[] = "Reply-to: {$params['name']} <{$params['email']}>";
+    $headers[] = "Reply-to: {$field_name} <{$field_email}>";
     $headers[] = "Content-type: text/html";
 
-    $subject = "New enquiry from {$params['name']}";
+    $subject = "New enquiry from {$field_name}";
 
     $message = '';
-    $message .= "Message has been sent from {$params['name']} <br/> <br/>";
+    $message .= "Message has been sent from {$field_name} <br/> <br/>";
 
     $postarr = [
-        'post_title' => $params['name'],
+        'post_title' => $field_name,
         'post_type' => 'submission', // custom post type
         'post_status' => 'publish'
     ];
@@ -170,8 +182,23 @@ function handle_enquiry($data)
     $post_id = wp_insert_post($postarr);
 
     foreach ($params as $label => $value) {
+        switch ($label) {
+            case 'name':
+                $value = $field_name;
+                break;
+            case 'email':
+                $value = $field_email;
+                break;
+            case 'phone':
+                $value = $field_phone;
+                break;
+            case 'message':
+                $value = $field_message;
+                break;
+        }
+        add_post_meta($post_id, $label, sanitize_text_field($value));
+
         $message .= "<strong>" . ucfirst($label) . ":</strong> " . $value . "<br/>";
-        add_post_meta($post_id, $label, $value);
     }
 
     wp_mail($admin_email, $subject, $message, $headers);
