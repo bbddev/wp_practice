@@ -8,34 +8,69 @@ add_action('init', 'create_submissions_page');
 
 add_action('add_meta_boxes', 'create_meta_box');
 
-add_filter('manage_submission_posts_columns','custom_submission_columns');
+add_filter('manage_submission_posts_columns', 'custom_submission_columns');
 
 add_action('manage_submission_posts_custom_column', 'fill_submission_columns', 10, 2);
 
-function fill_submission_columns($column, $post_id){
-   switch ($column) {
-       case 'name':
-           echo get_post_meta($post_id, 'name', true);
-           break;
-       case 'email':
-           echo get_post_meta($post_id, 'email', true);
-           break;
-       case 'phone':
-           echo get_post_meta($post_id, 'phone', true);
-           break;
-       case 'message':
-           echo get_post_meta($post_id, 'message', true);
-           break;
-   }
+add_action('admin_init', 'setup_search');
+
+function setup_search()
+{
+    global $typenow;
+
+    if ($typenow === 'submission') {
+        add_filter('posts_search', 'submission_search_override', 10, 2);
+    }
 }
 
-function custom_submission_columns($columns){
+function submission_search_override($search, $query)
+{
+    global $wpdb;
+    if ($query->is_main_query() && !empty($query->query['s'])) {
+        $sql = "
+    or exists (
+        select * from {$wpdb->postmeta} pm
+        where pm.post_id = {$wpdb->posts}.ID
+        and pm.meta_key in ('name', 'email', 'phone')
+        and pm.meta_value like %s
+    )
+    ";
+        $like = '%' . $wpdb->esc_like($query->query['s']) . '%';
+        $search = preg_replace(
+            "#\({$wpdb->posts}.post_title LIKE [^)]+\)\K#",
+            $wpdb->prepare($sql, $like),
+            $search
+        );
+    }
+    return $search;
+}
+
+function fill_submission_columns($column, $post_id)
+{
+    switch ($column) {
+        case 'name':
+            echo get_post_meta($post_id, 'name', true);
+            break;
+        case 'email':
+            echo get_post_meta($post_id, 'email', true);
+            break;
+        case 'phone':
+            echo get_post_meta($post_id, 'phone', true);
+            break;
+        case 'message':
+            echo get_post_meta($post_id, 'message', true);
+            break;
+    }
+}
+
+function custom_submission_columns($columns)
+{
     $columns = array(
         'cb' => $columns['cb'],
-        'name' =>__('Name', 'contact-plugin'),
-        'email'=> __('Email', 'contact-plugin'),
-        'phone'=> __('Phone', 'contact-plugin'),
-        'message'=> __('Message', 'contact-plugin'),
+        'name' => __('Name', 'contact-plugin'),
+        'email' => __('Email', 'contact-plugin'),
+        'phone' => __('Phone', 'contact-plugin'),
+        'message' => __('Message', 'contact-plugin'),
     );
     return $columns;
 }
