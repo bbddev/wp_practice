@@ -24,12 +24,10 @@ function add_class_meta_boxes()
  */
 function render_class_meta_box($post)
 {
-    // Thêm nonce để bảo mật
     wp_nonce_field('save_class_meta', 'class_meta_nonce');
 
     $class_school = get_post_meta($post->ID, 'Thuộc Trường', true);
 
-    // Lấy danh sách tất cả các lớp học
     $school_list = get_posts(array(
         'post_type' => 'school',
         'numberposts' => -1,

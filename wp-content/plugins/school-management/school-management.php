@@ -1,13 +1,13 @@
 <?php
 /*
 Plugin Name: School Management
-Description: A plugin to manage school operations.
+Description: A plugin to test.
 Version: 1.0
 Author: Binh Vo
 */
 
 if (!defined('ABSPATH')) {
-    exit; // Exit if accessed directly
+    exit; 
 }
 
 if (!class_exists('SchoolManagement')) {

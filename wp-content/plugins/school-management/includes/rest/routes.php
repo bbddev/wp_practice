@@ -44,7 +44,6 @@ function register_school_management_routes()
  */
 function get_schools()
 {
-    // Sample data - replace with actual data retrieval logic
    $school_list = get_posts(array(
         'post_type' => 'school',
         'numberposts' => -1,

@@ -16,7 +16,7 @@
     <div id="entity-container" style="display: none;">
         <h3>Danh sách entity:</h3>
         <div id="entity-grid" class="entity-grid">
-            <!-- Entities will be loaded here via AJAX -->
+            <!-- AJAX -->
         </div>
     </div>
 </div>

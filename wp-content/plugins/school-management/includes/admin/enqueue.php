@@ -1,7 +1,7 @@
 <?php
 
 if (!defined('ABSPATH')) {
-    exit; // Exit if accessed directly
+    exit;
 }
 
 /**
@@ -22,10 +22,8 @@ function enqueue_media_scripts($hook_suffix)
  */
 function enqueue_school_management_frontend_scripts()
 {
-    // Enqueue jQuery
     wp_enqueue_script('jquery');
 
-    // Enqueue our custom CSS
     wp_enqueue_style(
         'school-management-css',
         SCHOOLPLUGIN_URL . '/assets/style/school-management.css',
@@ -33,7 +31,6 @@ function enqueue_school_management_frontend_scripts()
         '1.0.0'
     );
 
-    // Enqueue our custom script
     wp_enqueue_script(
         'school-management-js',
         SCHOOLPLUGIN_URL . '/assets/js/school-management.js',
@@ -42,12 +39,10 @@ function enqueue_school_management_frontend_scripts()
         true
     );
 
-    // Localize script to pass AJAX URL and nonce
     wp_localize_script('school-management-js', 'schoolManagementAjax', array(
         'apiUrl' => rest_url(),
         'nonce' => wp_create_nonce('wp_rest'),
     ));
 }
 
-// Hook to enqueue scripts on frontend when shortcode is used
 add_action('wp_enqueue_scripts', 'enqueue_school_management_frontend_scripts');
