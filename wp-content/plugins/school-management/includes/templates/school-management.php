@@ -1,8 +1,110 @@
-<div id="select-school">
-    <select id="school-dropdown">
-        <option value="">Select a school</option>
-        <!--  -->
+<div id="school-management-container">
+    <div id="select-school">
+        <label for="school-dropdown">Chọn trường:</label>
+        <select id="school-dropdown">
+            <option value="">-- Chọn trường --</option>
+        </select>
+    </div>
+
+    <div id="select-class" style="display: none;">
+        <label for="class-dropdown">Chọn lớp:</label>
+        <select id="class-dropdown">
+            <option value="">-- Chọn lớp --</option>
+        </select>
+    </div>
+
+    <div id="entity-container" style="display: none;">
+        <h3>Danh sách entity:</h3>
+        <div id="entity-grid" class="entity-grid">
+            <!-- Entities will be loaded here via AJAX -->
+        </div>
+    </div>
 </div>
-<div id="select-class"></div>
-<div id="select-entity"></div>
+
+<style>
+.entity-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.entity-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.entity-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    text-decoration: none;
+    color: inherit;
+}
+
+.entity-item img {
+    width: 100%;
+    max-width: 150px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.entity-item h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.entity-item .no-image {
+    width: 100%;
+    height: 120px;
+    background: #f0f0f0;
+    border: 2px dashed #ccc;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .entity-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .entity-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+#select-school, #select-class {
+    margin-bottom: 20px;
+}
+
+#select-school label, #select-class label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#school-dropdown, #class-dropdown {
+    width: 100%;
+    max-width: 300px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+</style>
 
