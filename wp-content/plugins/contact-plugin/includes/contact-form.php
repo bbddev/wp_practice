@@ -115,14 +115,18 @@ function create_submissions_page()
         'public' => true,
         'has_archive' => true,
         'menu_position' => 30,
+        'publicly_queryable' => false,
         'labels' => [
             'name' => 'Submissions',
-            'singular_name' => 'Submission'
+            'singular_name' => 'Submission',
+            'edit_item' => 'View Submission', // không có dòng này thì mặc định là Edit Post
         ],
         'supports' => false,
+        // 'supports' => ['custom-fields'],
         'capability_type' => 'post',
         'capabilities' => ['create_posts' => false],
         'map_meta_cap' => true,
+
     ];
     register_post_type('submission', $args);
 }
@@ -214,7 +218,7 @@ function handle_enquiry($data)
     //Set confirmation message
     $confirmation_message = "The message was sent successfully!!";
 
-    if(get_plugin_options('contact_plugin_message')) {
+    if (get_plugin_options('contact_plugin_message')) {
         $confirmation_message = get_plugin_options('contact_plugin_message');
 
         $confirmation_message = str_replace('{name}', $field_name, $confirmation_message);
