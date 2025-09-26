@@ -24,16 +24,24 @@ function enqueue_school_management_frontend_scripts()
 {
     // Enqueue jQuery
     wp_enqueue_script('jquery');
-    
+
+    // Enqueue our custom CSS
+    wp_enqueue_style(
+        'school-management-css',
+        SCHOOLPLUGIN_URL . '/assets/style/school-management.css',
+        array(),
+        '1.0.0'
+    );
+
     // Enqueue our custom script
     wp_enqueue_script(
         'school-management-js',
-        plugin_dir_url(__FILE__) . '../../assets/js/school-management.js',
+        SCHOOLPLUGIN_URL . '/assets/js/school-management.js',
         array('jquery'),
         '1.0.0',
         true
     );
-    
+
     // Localize script to pass AJAX URL and nonce
     wp_localize_script('school-management-js', 'schoolManagementAjax', array(
         'apiUrl' => rest_url(),
