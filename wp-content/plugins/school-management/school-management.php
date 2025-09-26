@@ -1,0 +1,30 @@
+<?php
+/*
+Plugin Name: School Management
+Description: A plugin to manage school operations.
+Version: 1.0
+Author: Binh Vo
+*/
+
+if(!defined('ABSPATH')){
+    exit; // Exit if accessed directly
+}
+
+if(!class_exists('SchoolManagement')){
+    class SchoolManagement{
+        public function __construct(){
+            define('SCHOOLPLUGIN_PATH', plugin_dir_path(__FILE__));
+            define('SCHOOLPLUGIN_URL', plugin_dir_url(__FILE__));
+        }
+
+        public function initialize_plugin(){
+            // Plugin initialization code here
+            require_once SCHOOLPLUGIN_PATH . 'includes/school-management.php';
+            require_once SCHOOLPLUGIN_PATH . 'includes/class.php';
+            require_once SCHOOLPLUGIN_PATH . 'includes/entity.php';
+        }
+    }
+
+    $school_management = new SchoolManagement();
+    $school_management->initialize_plugin();
+}
