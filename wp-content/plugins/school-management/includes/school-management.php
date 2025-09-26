@@ -37,11 +37,25 @@ function render_entity_meta_box($post)
     $entity_link = get_post_meta($post->ID, 'Link khi click', true);
     $entity_image = get_post_meta($post->ID, 'Hình', true);
 
+    // Lấy danh sách tất cả các lớp học
+    $classes = get_posts(array(
+        'post_type' => 'class',
+        'numberposts' => -1,
+        'post_status' => 'publish'
+    ));
+
     ?>
     <p>
         <label for="entity_class">Thuộc lớp:</label>
-        <input type="text" id="entity_class" name="entity_class" value="<?php echo esc_attr($entity_class); ?>"
-            style="width: 100%;" />
+        <select id="entity_class" name="entity_class" style="width: 100%;">
+            <option value="">-- Chọn lớp --</option>
+            <?php foreach ($classes as $class): ?>
+                <option value="<?php echo esc_attr($class->post_title); ?>" 
+                    <?php selected($entity_class, $class->post_title); ?>>
+                    <?php echo esc_html($class->post_title); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
     </p>
     <p>
         <label for="entity_link">Link khi click:</label>
