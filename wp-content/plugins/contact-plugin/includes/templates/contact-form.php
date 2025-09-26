@@ -1,3 +1,5 @@
+<?php if(get_plugin_options('contact_plugin_active')):?>
+
 <div id="form_success" style="background:green; color:white"></div>
 <div id="form_error" style="background:red; color:white"></div>
 
@@ -32,9 +34,9 @@
                 type: "POST",
                 url: "<?php echo get_rest_url(null, 'v1/contact-form/submit'); ?>",
                 data: form.serialize(),
-                success: function () {
+                success: function (res) {
                     form.hide();
-                    $("#form_success").html("Message sent successfully!").fadeIn();
+                    $("#form_success").html(res).fadeIn();
                 },
                 error: function () {
                     $("#form_error").html("An error occurred. Please try again.").fadeIn();
@@ -43,3 +45,7 @@
         })
     })
 </script>
+<?php else: ?>
+    <p>Contact form is not active. Please activate it from the admin panel.</p>
+
+<?php endif; ?>

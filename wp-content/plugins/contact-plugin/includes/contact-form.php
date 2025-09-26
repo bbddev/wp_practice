@@ -164,6 +164,13 @@ function handle_enquiry($data)
     $admin_email = get_bloginfo('admin_email');
     $admin_name = get_bloginfo('name');
 
+
+    $recipients_email = get_plugin_options('contact_plugin_recipients');
+
+    if (!$recipients_email) {
+        $recipients_email = $admin_email;
+    }
+
     $headers[] = "From: {$admin_name} <{$admin_email}>";
     $headers[] = "Reply-to: {$field_name} <{$field_email}>";
     $headers[] = "Content-type: text/html";
@@ -201,7 +208,17 @@ function handle_enquiry($data)
         $message .= "<strong>" . ucfirst($label) . ":</strong> " . $value . "<br/>";
     }
 
-    wp_mail($admin_email, $subject, $message, $headers);
+    wp_mail($recipients_email, $subject, $message, $headers);
 
-    return new WP_Rest_Response('Message sent', 200);
+    //Set confirmation message
+    $confirmation_message = "The message was sent successfully!!";
+
+    if(get_plugin_options('contact_plugin_message')) {
+        $confirmation_message = get_plugin_options('contact_plugin_message');
+
+        $confirmation_message = str_replace('{name}', $field_name, $confirmation_message);
+    }
+
+    //Return successfull response
+    return new WP_Rest_Response($confirmation_message, 200);
 }
