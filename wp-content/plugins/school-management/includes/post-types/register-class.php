@@ -21,6 +21,7 @@ function register_class_post_type()
             'edit_item' => 'View Lớp học',
             'add_new_item' => 'Add Lớp',
         ],
+        'supports' => ['title'],
     ];
     register_post_type('class', $args_class);
 }

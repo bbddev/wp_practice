@@ -42,3 +42,31 @@ function save_entity_meta($post_id)
         update_post_meta($post_id, 'Hình', sanitize_text_field($_POST['entity_image']));
     }
 }
+
+function save_class_meta($post_id)
+{
+    // Kiểm tra nonce để bảo mật
+    if (!isset($_POST['class_meta_nonce']) || !wp_verify_nonce($_POST['class_meta_nonce'], 'save_class_meta')) {
+        return;
+    }
+
+    // Kiểm tra quyền chỉnh sửa post
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Kiểm tra autosave
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    // Kiểm tra post type
+    if (get_post_type($post_id) !== 'class') {
+        return;
+    }
+
+    // Lưu các trường meta
+    if (isset($_POST['class_school'])) {
+        update_post_meta($post_id, 'Thuộc Trường', sanitize_text_field($_POST['class_school']));
+    }
+}

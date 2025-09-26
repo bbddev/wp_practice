@@ -5,6 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Include admin files
+require_once __DIR__ . '/admin/meta-box-class.php';
 require_once __DIR__ . '/admin/meta-box-entity.php';
 require_once __DIR__ . '/admin/enqueue.php';
 
@@ -30,6 +31,10 @@ add_action('init', 'create_school_management_page');
 add_action('add_meta_boxes', 'add_entity_meta_boxes');
 
 add_action('save_post', 'save_entity_meta');
+
+add_action('add_meta_boxes', 'add_class_meta_boxes');
+
+add_action('save_post', 'save_class_meta');
 
 add_action('admin_enqueue_scripts', 'enqueue_media_scripts');
 
