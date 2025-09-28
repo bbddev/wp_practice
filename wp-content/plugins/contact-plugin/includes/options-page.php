@@ -32,6 +32,8 @@ function create_options_page()
             Field::make('textarea', 'contact_plugin_message', __('Confirmation Message'))
                 ->set_attribute('placeholder', 'Enter your message here...')
                 ->set_help_text('Type the message you want the submitter to receive'),
+            Field::make('file', 'crb_file', __('File'))
+                ->set_help_text('Upload a file to be sent with the form submission.')
 
 
         ));
