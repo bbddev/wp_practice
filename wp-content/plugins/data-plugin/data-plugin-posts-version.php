@@ -149,13 +149,30 @@ function bb_data_plugin_import_csv_posts()
                             continue; // Skip invalid types
                         }
 
-                        // Check if post with same title and type already exists
+                        // Check if post with same title, type and parent already exists
                         $existing_posts = get_posts(array(
                             'post_type' => $type,
                             'title' => $title,
                             'post_status' => array('publish', 'draft'),
-                            'numberposts' => 1
+                            'numberposts' => 1,
+                            'meta_query' => array(
+                                array(
+                                    'key' => $type === 'class' ? 'Thuộc Trường' : ($type === 'entity' ? 'Thuộc lớp' : ''),
+                                    'value' => $parent,
+                                    'compare' => '='
+                                )
+                            )
                         ));
+
+                        // For school type or when no parent, use simple check
+                        if ($type === 'school' || empty($parent)) {
+                            $existing_posts = get_posts(array(
+                                'post_type' => $type,
+                                'title' => $title,
+                                'post_status' => array('publish', 'draft'),
+                                'numberposts' => 1
+                            ));
+                        }
 
                         $meta_input = array();
 
@@ -441,31 +458,31 @@ function bb_data_plugin_posts_admin_page()
                     <?php } ?>
                 </tbody>
             </table>
-    <!-- JavaScript functions -->
-    <script>
-        function formToggle(ID) {
-            var element = document.getElementById(ID);
-            if (element.style.display === "none") {
-                element.style.display = "block";
-            } else {
-                element.style.display = "none";
-            }
-        }
+            <!-- JavaScript functions -->
+            <script>
+                function formToggle(ID) {
+                    var element = document.getElementById(ID);
+                    if (element.style.display === "none") {
+                        element.style.display = "block";
+                    } else {
+                        element.style.display = "none";
+                    }
+                }
 
-        function downloadSample() {
-            var csvContent = "type,title,password,parent,link,image_url\nschool,Trường THPT ABC,,,,\nclass,Lớp 12A1,123456,Trường THPT ABC,,\nentity,Bài học 1,password123,Lớp 12A1,https://example.com,http://localhost/wp_practice/wp-content/uploads/2025/09/lesson1.png";
-            var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            var link = document.createElement("a");
-            var url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", "sample-bbdatas-posts.csv");
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    </script>
-    <?php
+                function downloadSample() {
+                    var csvContent = "type,title,password,parent,link,image_url\nschool,Trường THPT ABC,,,,\nclass,Lớp 12A1,123456,Trường THPT ABC,,\nentity,Bài học 1,password123,Lớp 12A1,https://example.com,http://localhost/wp_practice/wp-content/uploads/2025/09/lesson1.png";
+                    var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    var link = document.createElement("a");
+                    var url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", "sample-bbdatas-posts.csv");
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            </script>
+            <?php
 }
 
 // Add custom columns to post list in admin for all 3 post types
