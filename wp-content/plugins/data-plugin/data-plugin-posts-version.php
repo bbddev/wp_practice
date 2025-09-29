@@ -290,12 +290,6 @@ function bb_data_plugin_posts_admin_page()
         .btn-success { color: #fff; background-color: #5cb85c; border-color: #4cae4c; }
         .btn-danger { color: #fff; background-color: #d9534f; border-color: #d43f3a; }
         .float-end { float: right; }
-        .table { width: 100%; max-width: 100%; margin-bottom: 20px; border-collapse: collapse; }
-        .table-striped tbody tr:nth-of-type(odd) { background-color: #f9f9f9; }
-        .table-bordered { border: 1px solid #ddd; }
-        .table-bordered th, .table-bordered td { border: 1px solid #ddd; }
-        .table th, .table td { padding: 8px; line-height: 1.42857143; vertical-align: top; }
-        .table-dark { background-color: #333; color: #fff; }
         #importFrm { margin-bottom: 20px; }
         .badge { display: inline-block; min-width: 10px; padding: 3px 7px; font-size: 12px; font-weight: bold; color: #fff; line-height: 1; vertical-align: baseline; white-space: nowrap; text-align: center; border-radius: 10px; }
         .badge-success { background-color: #5cb85c; }
@@ -319,19 +313,16 @@ function bb_data_plugin_posts_admin_page()
         <div class="row">
             <!-- Import link -->
             <div class="col-md-12 head" style="margin-bottom: 20px;">
-                <div class="float-end">
-                    <a href="javascript:void(0);" class="btn btn-primary" onclick="formToggle('importFrm');">
-                        <i class="plus"></i> Import CSV
-                    </a>
-                    <a href="<?php echo admin_url('edit.php?post_type=school'); ?>" class="btn btn-success"
+                <div class="float-end">                    
+                    <a href="<?php echo admin_url('edit.php?post_type=school'); ?>" class="btn btn-primary"
                         style="margin-right: 5px;">
                         View Schools
                     </a>
-                    <a href="<?php echo admin_url('edit.php?post_type=class'); ?>" class="btn btn-success"
+                    <a href="<?php echo admin_url('edit.php?post_type=class'); ?>" class="btn btn-primary"
                         style="margin-right: 5px;">
                         View Classes
                     </a>
-                    <a href="<?php echo admin_url('edit.php?post_type=entity'); ?>" class="btn btn-success">
+                    <a href="<?php echo admin_url('edit.php?post_type=entity'); ?>" class="btn btn-primary">
                         View Entities
                     </a>
                 </div>
@@ -339,136 +330,33 @@ function bb_data_plugin_posts_admin_page()
             </div>
 
             <!-- CSV file upload form -->
-            <div class="col-md-12" id="importFrm" style="display: none;">
-                <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
-                    enctype="multipart/form-data"
-                    style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-                    <?php wp_nonce_field('bb_data_import', 'bb_data_nonce'); ?>
-                    <input type="hidden" name="action" value="import_csv_data_posts">
+                <div class="col-md-12" id="importFrm">
+                    <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
+                        enctype="multipart/form-data"
+                        style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+                        <?php wp_nonce_field('bb_data_import', 'bb_data_nonce'); ?>
+                        <input type="hidden" name="action" value="import_csv_data_posts">
 
-                    <div style="margin-bottom: 15px;">
-                        <label for="csv_file"><strong>Select CSV File:</strong></label><br>
-                        <input type="file" name="file" id="csv_file" required accept=".csv" style="margin-top: 5px;">
+                        <div style="margin-bottom: 15px;">
+                            <label for="csv_file"><strong>Select CSV File:</strong></label><br>
+                            <input type="file" name="file" id="csv_file" required accept=".csv" style="margin-top: 5px;">
 
-                        <p style="margin: 10px 0 0 0; font-size: 12px;">
-                            <em>CSV format: type, title, password, parent, link, image_url</em><br>
-                            <em>type: school, class, entity</em><br>
-                            <a href="#" onclick="downloadSample();" style="color: #0073aa;">Download Sample Format</a>
-                        </p>
-                    </div>
+                            <p style="margin: 10px 0 0 0; font-size: 12px;">
+                                <em>CSV format: type, title, password, parent, link, image_url</em><br>
+                                <em>type: school, class, entity</em><br>
+                                <a href="#" onclick="downloadSample();" style="color: #0073aa;">Download Sample Format</a>
+                            </p>
+                        </div>
 
-                    <div>
-                        <input type="submit" class="btn btn-success" name="importSubmit" value="Import to Posts Table">
-                        <button type="button" class="btn" onclick="formToggle('importFrm');"
-                            style="margin-left: 10px;">Cancel</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Data list table -->
-            <h3>Data from wp_posts table (Post Types: School, Class, Entity)</h3>
-            <table class="table table-striped table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Post ID</th>
-                        <th>Type</th>
-                        <th>Title</th>
-                        <th>Password</th>
-                        <th>Parent</th>
-                        <th>Link</th>
-                        <th>Image</th>
-                        <th>Created</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    // Fetch data from all 3 post types: school, class, entity
-                    $posts = get_posts(array(
-                        'post_type' => array('school', 'class', 'entity'),
-                        'post_status' => array('publish', 'draft'),
-                        'numberposts' => -1,
-                        'orderby' => 'date',
-                        'order' => 'DESC'
-                    ));
-
-                    if ($posts) {
-                        foreach ($posts as $post) {
-                            $type = $post->post_type; // Get type from post_type instead of meta
-                
-                            // Get meta fields based on post type
-                            if ($type === 'class') {
-                                $password = get_post_meta($post->ID, 'class_password', true);
-                                $parent = get_post_meta($post->ID, 'Thuộc Trường', true);
-                                $link = '';
-                                $image_url = '';
-                            } elseif ($type === 'entity') {
-                                $password = get_post_meta($post->ID, 'lesson_password', true);
-                                $parent = get_post_meta($post->ID, 'Thuộc lớp', true);
-                                $link = get_post_meta($post->ID, 'Link khi click', true);
-                                $image_url = get_post_meta($post->ID, 'Hình', true);
-                            } else {
-                                // School type
-                                $password = '';
-                                $parent = '';
-                                $link = '';
-                                $image_url = '';
-                            }
-                            ?>
-                            <tr>
-                                <td><?php echo esc_html('#' . $post->ID); ?></td>
-                                <td>
-                                    <span class="badge badge-<?php
-                                    echo $type == 'school' ? 'success' : ($type == 'class' ? 'warning' : 'info');
-                                    ?>">
-                                        <?php echo esc_html(ucfirst($type)); ?>
-                                    </span>
-                                </td>
-                                <td><?php echo esc_html($post->post_title); ?></td>
-                                <td><?php echo $password ? '****' : '-'; ?></td>
-                                <td><?php echo esc_html($parent ?: '-'); ?></td>
-                                <td>
-                                    <?php if ($link): ?>
-                                        <a href="<?php echo esc_url($link); ?>" target="_blank" style="color: #0073aa;">Link</a>
-                                    <?php else: ?>
-                                        -
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php if ($image_url): ?>
-                                        <a href="<?php echo esc_url($image_url); ?>" target="_blank" style="color: #0073aa;">Image</a>
-                                    <?php else: ?>
-                                        -
-                                    <?php endif; ?>
-                                </td>
-                                <td><?php echo esc_html(date('Y-m-d H:i', strtotime($post->post_date))); ?></td>
-                                <td>
-                                    <a href="<?php echo get_edit_post_link($post->ID); ?>" class="btn btn-primary"
-                                        style="font-size: 12px; padding: 3px 8px;">Edit</a>
-                                    <a href="<?php echo get_delete_post_link($post->ID, '', true); ?>" class="btn btn-danger"
-                                        style="font-size: 12px; padding: 3px 8px;"
-                                        onclick="return confirm('Are you sure?')">Delete</a>
-                                </td>
-                            </tr>
-                        <?php }
-                    } else { ?>
-                        <tr>
-                            <td colspan="9" style="text-align: center; color: #666;">No data found in wp_posts table...</td>
-                        </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
+                        <div>
+                            <input type="submit" class="btn btn-primary" name="importSubmit" value="Import">
+                            <button type="button" class="btn" onclick="formToggle('importFrm');"
+                                style="margin-left: 10px;">Cancel</button>
+                        </div>
+                    </form>
+                </div>
             <!-- JavaScript functions -->
-            <script>
-                function formToggle(ID) {
-                    var element = document.getElementById(ID);
-                    if (element.style.display === "none") {
-                        element.style.display = "block";
-                    } else {
-                        element.style.display = "none";
-                    }
-                }
-
+            <script>   
                 function downloadSample() {
                     var csvContent = "type,title,password,parent,link,image_url\nschool,Trường THPT ABC,,,,\nclass,Lớp 12A1,123456,Trường THPT ABC,,\nentity,Bài học 1,password123,Lớp 12A1,https://example.com,http://localhost/wp_practice/wp-content/uploads/2025/09/lesson1.png";
                     var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
