@@ -125,6 +125,12 @@ function bb_data_plugin_import_csv_posts()
                 // Skip the first line
                 fgetcsv($csvFile);
 
+                // Initialize counters
+                $total_imported = 0;
+                $total_updated = 0;
+                $total_created = 0;
+                $total_skipped = 0;
+
                 // Parse data from CSV file line by line
                 while (($line = fgetcsv($csvFile)) !== FALSE) {
                     $line_arr = !empty($line) ? array_filter($line) : '';
@@ -139,6 +145,7 @@ function bb_data_plugin_import_csv_posts()
 
                         // Validate type
                         if (!in_array($type, array('school', 'class', 'entity'))) {
+                            $total_skipped++;
                             continue; // Skip invalid types
                         }
 
@@ -186,6 +193,9 @@ function bb_data_plugin_import_csv_posts()
                             foreach ($meta_input as $key => $value) {
                                 update_post_meta($post_id, $key, $value);
                             }
+
+                            $total_updated++;
+                            $total_imported++;
                         } else {
                             // Create new post
                             $post_data = array(
@@ -195,7 +205,11 @@ function bb_data_plugin_import_csv_posts()
                                 'meta_input' => $meta_input
                             );
 
-                            wp_insert_post($post_data);
+                            $post_id = wp_insert_post($post_data);
+                            if ($post_id && !is_wp_error($post_id)) {
+                                $total_created++;
+                                $total_imported++;
+                            }
                         }
                     }
                 }
@@ -204,7 +218,7 @@ function bb_data_plugin_import_csv_posts()
                 fclose($csvFile);
 
                 $res_status = 'success';
-                $res_msg = 'Data has been imported successfully with new format (type, title, password, parent, link, image_url).';
+                $res_msg = "Import hoàn tất! Tổng cộng: {$total_imported} dòng đã import thành công (Tạo mới: {$total_created}, Cập nhật: {$total_updated}, Bỏ qua: {$total_skipped}).";
             } else {
                 $res_status = 'danger';
                 $res_msg = 'Something went wrong, please try again.';
