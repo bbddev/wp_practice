@@ -16,26 +16,76 @@ add_action('init', 'bb_data_plugin_register_post_type');
 
 function bb_data_plugin_register_post_type()
 {
-    register_post_type('bb_data', array(
+    // Register School Post Type
+    register_post_type('school', array(
         'labels' => array(
-            'name' => 'BB Data',
-            'singular_name' => 'BB Data Item',
-            'add_new' => 'Add New Data',
-            'add_new_item' => 'Add New BB Data',
-            'edit_item' => 'Edit BB Data',
-            'new_item' => 'New BB Data',
-            'view_item' => 'View BB Data',
-            'search_items' => 'Search BB Data',
-            'not_found' => 'No BB Data found',
-            'not_found_in_trash' => 'No BB Data found in Trash'
+            'name' => 'Schools',
+            'singular_name' => 'School',
+            'add_new' => 'Add New School',
+            'add_new_item' => 'Add New School',
+            'edit_item' => 'Edit School',
+            'new_item' => 'New School',
+            'view_item' => 'View School',
+            'search_items' => 'Search Schools',
+            'not_found' => 'No Schools found',
+            'not_found_in_trash' => 'No Schools found in Trash'
         ),
         'public' => false,
         'show_ui' => true,
-        'show_in_menu' => true, // Chúng ta sẽ tạo menu riêng
+        'show_in_menu' => true,
         'capability_type' => 'post',
         'supports' => array('title', 'custom-fields'),
         'has_archive' => false,
-        'rewrite' => false
+        'rewrite' => false,
+        'menu_icon' => 'dashicons-building'
+    ));
+
+    // Register Class Post Type
+    register_post_type('class', array(
+        'labels' => array(
+            'name' => 'Classes',
+            'singular_name' => 'Class',
+            'add_new' => 'Add New Class',
+            'add_new_item' => 'Add New Class',
+            'edit_item' => 'Edit Class',
+            'new_item' => 'New Class',
+            'view_item' => 'View Class',
+            'search_items' => 'Search Classes',
+            'not_found' => 'No Classes found',
+            'not_found_in_trash' => 'No Classes found in Trash'
+        ),
+        'public' => false,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'capability_type' => 'post',
+        'supports' => array('title', 'custom-fields'),
+        'has_archive' => false,
+        'rewrite' => false,
+        'menu_icon' => 'dashicons-groups'
+    ));
+
+    // Register Entity Post Type
+    register_post_type('entity', array(
+        'labels' => array(
+            'name' => 'Entities',
+            'singular_name' => 'Entity',
+            'add_new' => 'Add New Entity',
+            'add_new_item' => 'Add New Entity',
+            'edit_item' => 'Edit Entity',
+            'new_item' => 'New Entity',
+            'view_item' => 'View Entity',
+            'search_items' => 'Search Entities',
+            'not_found' => 'No Entities found',
+            'not_found_in_trash' => 'No Entities found in Trash'
+        ),
+        'public' => false,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'capability_type' => 'post',
+        'supports' => array('title', 'custom-fields'),
+        'has_archive' => false,
+        'rewrite' => false,
+        'menu_icon' => 'dashicons-media-document'
     ));
 }
 
@@ -94,22 +144,13 @@ function bb_data_plugin_import_csv_posts()
 
                         // Check if post with same title and type already exists
                         $existing_posts = get_posts(array(
-                            'post_type' => 'bb_data',
+                            'post_type' => $type,
                             'title' => $title,
-                            'meta_query' => array(
-                                array(
-                                    'key' => 'bb_type',
-                                    'value' => $type,
-                                    'compare' => '='
-                                )
-                            ),
                             'post_status' => array('publish', 'draft'),
                             'numberposts' => 1
                         ));
 
-                        $meta_input = array(
-                            'bb_type' => $type
-                        );
+                        $meta_input = array();
 
                         // Add fields based on type
                         if ($type === 'school') {
@@ -117,19 +158,19 @@ function bb_data_plugin_import_csv_posts()
                         } elseif ($type === 'class') {
                             // Class: type, title, password, parent (Thuộc Trường)
                             if ($password)
-                                $meta_input['bb_password'] = $password;
+                                $meta_input['class_password'] = $password;
                             if ($parent)
-                                $meta_input['bb_parent'] = 'Thuộc Trường: ' . $parent;
+                                $meta_input['Thuộc Trường'] = $parent;
                         } elseif ($type === 'entity') {
                             // Entity: type, title, password, parent (Thuộc lớp), link, image_url
                             if ($password)
-                                $meta_input['bb_password'] = $password;
+                                $meta_input['lesson_password'] = $password;
                             if ($parent)
-                                $meta_input['bb_parent'] = 'Thuộc lớp: ' . $parent;
+                                $meta_input['Thuộc lớp'] = $parent;
                             if ($link)
-                                $meta_input['bb_link'] = $link;
+                                $meta_input['link khi click'] = $link;
                             if ($image_url)
-                                $meta_input['bb_image_url'] = $image_url;
+                                $meta_input['hình'] = $image_url;
                         }
 
                         if ($existing_posts) {
@@ -149,7 +190,7 @@ function bb_data_plugin_import_csv_posts()
                             // Create new post
                             $post_data = array(
                                 'post_title' => $title,
-                                'post_type' => 'bb_data',
+                                'post_type' => $type,
                                 'post_status' => 'publish',
                                 'meta_input' => $meta_input
                             );
@@ -236,7 +277,7 @@ function bb_data_plugin_posts_admin_page()
 
         <div class="notice notice-info">
             <p><strong>Lưu ý:</strong> Plugin này sử dụng bảng wp_posts thay vì tạo bảng mới. Dữ liệu được lưu dưới dạng
-                Custom Post Type 'bb_data'.</p>
+                3 Custom Post Types riêng biệt: School, Class, Entity với các meta fields tương ứng.</p>
         </div>
 
         <?php if (!empty($statusMsg)) { ?>
@@ -252,8 +293,16 @@ function bb_data_plugin_posts_admin_page()
                     <a href="javascript:void(0);" class="btn btn-primary" onclick="formToggle('importFrm');">
                         <i class="plus"></i> Import CSV to Posts Table
                     </a>
-                    <a href="<?php echo admin_url('edit.php?post_type=bb_data'); ?>" class="btn btn-success">
-                        View in Posts Admin
+                    <a href="<?php echo admin_url('edit.php?post_type=school'); ?>" class="btn btn-success"
+                        style="margin-right: 5px;">
+                        View Schools
+                    </a>
+                    <a href="<?php echo admin_url('edit.php?post_type=class'); ?>" class="btn btn-success"
+                        style="margin-right: 5px;">
+                        View Classes
+                    </a>
+                    <a href="<?php echo admin_url('edit.php?post_type=entity'); ?>" class="btn btn-success">
+                        View Entities
                     </a>
                 </div>
                 <div style="clear: both;"></div>
@@ -287,7 +336,7 @@ function bb_data_plugin_posts_admin_page()
             </div>
 
             <!-- Data list table -->
-            <h3>Data from wp_posts table (Custom Post Type: bb_data)</h3>
+            <h3>Data from wp_posts table (Post Types: School, Class, Entity)</h3>
             <table class="table table-striped table-bordered">
                 <thead class="table-dark">
                     <tr>
@@ -304,9 +353,9 @@ function bb_data_plugin_posts_admin_page()
                 </thead>
                 <tbody>
                     <?php
-                    // Fetch data from wp_posts with post_type = 'bb_data'
+                    // Fetch data from all 3 post types: school, class, entity
                     $posts = get_posts(array(
-                        'post_type' => 'bb_data',
+                        'post_type' => array('school', 'class', 'entity'),
                         'post_status' => array('publish', 'draft'),
                         'numberposts' => -1,
                         'orderby' => 'date',
@@ -315,11 +364,26 @@ function bb_data_plugin_posts_admin_page()
 
                     if ($posts) {
                         foreach ($posts as $post) {
-                            $type = get_post_meta($post->ID, 'bb_type', true);
-                            $password = get_post_meta($post->ID, 'bb_password', true);
-                            $parent = get_post_meta($post->ID, 'bb_parent', true);
-                            $link = get_post_meta($post->ID, 'bb_link', true);
-                            $image_url = get_post_meta($post->ID, 'bb_image_url', true);
+                            $type = $post->post_type; // Get type from post_type instead of meta
+                
+                            // Get meta fields based on post type
+                            if ($type === 'class') {
+                                $password = get_post_meta($post->ID, 'class_password', true);
+                                $parent = get_post_meta($post->ID, 'Thuộc Trường', true);
+                                $link = '';
+                                $image_url = '';
+                            } elseif ($type === 'entity') {
+                                $password = get_post_meta($post->ID, 'lesson_password', true);
+                                $parent = get_post_meta($post->ID, 'Thuộc lớp', true);
+                                $link = get_post_meta($post->ID, 'link khi click', true);
+                                $image_url = get_post_meta($post->ID, 'hình', true);
+                            } else {
+                                // School type
+                                $password = '';
+                                $parent = '';
+                                $link = '';
+                                $image_url = '';
+                            }
                             ?>
                             <tr>
                                 <td><?php echo esc_html('#' . $post->ID); ?></td>
@@ -369,17 +433,31 @@ function bb_data_plugin_posts_admin_page()
                 <h4>Thông tin kỹ thuật:</h4>
                 <ul>
                     <li><strong>Bảng sử dụng:</strong> wp_posts (thay vì tạo bảng mới)</li>
-                    <li><strong>Post Type:</strong> bb_data</li>
-                    <li><strong>Meta fields:</strong> bb_type, bb_password, bb_parent, bb_link, bb_image_url</li>
-                    <li><strong>Các loại type:</strong>
+                    <li><strong>Post Types:</strong> school, class, entity (3 post types riêng biệt)</li>
+                    <li><strong>Meta fields:</strong></li>
+                    <li><strong>Các loại post type và meta fields:</strong>
                         <ul>
-                            <li><strong>school:</strong> type, title</li>
-                            <li><strong>class:</strong> type, title, password, parent (Thuộc Trường)</li>
-                            <li><strong>entity:</strong> type, title, password, parent (Thuộc lớp), link, image_url</li>
+                            <li><strong>school:</strong> title only (không có meta fields)</li>
+                            <li><strong>class:</strong>
+                                <ul>
+                                    <li>title</li>
+                                    <li>class_password (mật khẩu lớp)</li>
+                                    <li>Thuộc Trường (trường mẹ)</li>
+                                </ul>
+                            </li>
+                            <li><strong>entity:</strong>
+                                <ul>
+                                    <li>title</li>
+                                    <li>lesson_password (mật khẩu bài học)</li>
+                                    <li>Thuộc lớp (lớp mẹ)</li>
+                                    <li>link khi click (URL liên kết)</li>
+                                    <li>hình (URL hình ảnh)</li>
+                                </ul>
+                            </li>
                         </ul>
                     </li>
                     <li><strong>Ưu điểm:</strong> Tận dụng hệ thống có sẵn của WordPress, dễ quản lý, có sẵn các chức năng
-                        CRUD</li>
+                        CRUD, type được tách riêng thành post_type, meta keys có tên tiếng Việt rõ ràng</li>
                     <li><strong>Nhược điểm:</strong> Có thể chậm hơn với lượng dữ liệu lớn, phụ thuộc vào cấu trúc WordPress
                     </li>
                 </ul>
@@ -414,50 +492,69 @@ function bb_data_plugin_posts_admin_page()
     <?php
 }
 
-// Add custom columns to post list in admin
-add_filter('manage_bb_data_posts_columns', 'bb_data_custom_columns');
+// Add custom columns to post list in admin for all 3 post types
+add_filter('manage_school_posts_columns', 'bb_data_custom_columns');
+add_filter('manage_class_posts_columns', 'bb_data_custom_columns');
+add_filter('manage_entity_posts_columns', 'bb_data_custom_columns');
+
 function bb_data_custom_columns($columns)
 {
-    $columns['bb_type'] = 'Type';
-    $columns['bb_password'] = 'Password';
-    $columns['bb_parent'] = 'Parent';
-    $columns['bb_link'] = 'Link';
-    $columns['bb_image_url'] = 'Image';
+    $columns['csv_password'] = 'Password';
+    $columns['csv_parent'] = 'Parent';
+    $columns['csv_link'] = 'Link';
+    $columns['csv_image'] = 'Image';
     return $columns;
 }
 
-add_action('manage_bb_data_posts_custom_column', 'bb_data_custom_column_content', 10, 2);
+add_action('manage_school_posts_custom_column', 'bb_data_custom_column_content', 10, 2);
+add_action('manage_class_posts_custom_column', 'bb_data_custom_column_content', 10, 2);
+add_action('manage_entity_posts_custom_column', 'bb_data_custom_column_content', 10, 2);
+
 function bb_data_custom_column_content($column, $post_id)
 {
+    $post_type = get_post_type($post_id);
+
     switch ($column) {
-        case 'bb_type':
-            $type = get_post_meta($post_id, 'bb_type', true);
-            echo '<span style="background: ' .
-                ($type == 'school' ? '#5cb85c' : ($type == 'class' ? '#f0ad4e' : '#0073aa')) .
-                '; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">';
-            echo esc_html(ucfirst($type));
-            echo '</span>';
-            break;
-        case 'bb_password':
-            $password = get_post_meta($post_id, 'bb_password', true);
+        case 'csv_password':
+            if ($post_type === 'class') {
+                $password = get_post_meta($post_id, 'class_password', true);
+            } elseif ($post_type === 'entity') {
+                $password = get_post_meta($post_id, 'lesson_password', true);
+            } else {
+                $password = '';
+            }
             echo $password ? '****' : '-';
             break;
-        case 'bb_parent':
-            $parent = get_post_meta($post_id, 'bb_parent', true);
+        case 'csv_parent':
+            if ($post_type === 'class') {
+                $parent = get_post_meta($post_id, 'Thuộc Trường', true);
+            } elseif ($post_type === 'entity') {
+                $parent = get_post_meta($post_id, 'Thuộc lớp', true);
+            } else {
+                $parent = '';
+            }
             echo esc_html($parent ?: '-');
             break;
-        case 'bb_link':
-            $link = get_post_meta($post_id, 'bb_link', true);
-            if ($link) {
-                echo '<a href="' . esc_url($link) . '" target="_blank" style="color: #0073aa;">View Link</a>';
+        case 'csv_link':
+            if ($post_type === 'entity') {
+                $link = get_post_meta($post_id, 'link khi click', true);
+                if ($link) {
+                    echo '<a href="' . esc_url($link) . '" target="_blank" style="color: #0073aa;">View Link</a>';
+                } else {
+                    echo '-';
+                }
             } else {
                 echo '-';
             }
             break;
-        case 'bb_image_url':
-            $image_url = get_post_meta($post_id, 'bb_image_url', true);
-            if ($image_url) {
-                echo '<a href="' . esc_url($image_url) . '" target="_blank" style="color: #0073aa;">View Image</a>';
+        case 'csv_image':
+            if ($post_type === 'entity') {
+                $image_url = get_post_meta($post_id, 'hình', true);
+                if ($image_url) {
+                    echo '<a href="' . esc_url($image_url) . '" target="_blank" style="color: #0073aa;">View Image</a>';
+                } else {
+                    echo '-';
+                }
             } else {
                 echo '-';
             }
