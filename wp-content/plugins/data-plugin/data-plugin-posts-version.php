@@ -300,9 +300,9 @@ function bb_data_plugin_posts_admin_page()
     <div class="wrap">
         <h1>Import Data</h1>
 
-        <div class="notice notice-info">
+        <!-- <div class="notice notice-info">
             <p><strong>Info:</strong> Dữ liệu được lưu ở table wp_posts và wp_postmeta.</p>
-        </div>
+        </div> -->
 
         <?php if (!empty($statusMsg)) { ?>
             <div class="alert alert-<?php echo esc_attr($status); ?>">
@@ -312,8 +312,8 @@ function bb_data_plugin_posts_admin_page()
 
         <div class="row">
             <!-- Import link -->
-            <div class="col-md-12 head" style="margin-bottom: 20px;">
-                <div class="float-end">                    
+            <!-- <div class="col-md-12 head" style="margin-bottom: 20px;">
+                <div class="float-end">
                     <a href="<?php echo admin_url('edit.php?post_type=school'); ?>" class="btn btn-primary"
                         style="margin-right: 5px;">
                         View Schools
@@ -327,43 +327,58 @@ function bb_data_plugin_posts_admin_page()
                     </a>
                 </div>
                 <div style="clear: both;"></div>
-            </div>
+            </div> -->
 
             <!-- CSV file upload form -->
-                <div class="col-md-12" id="importFrm">
-                    <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
-                        enctype="multipart/form-data"
-                        style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-                        <?php wp_nonce_field('bb_data_import', 'bb_data_nonce'); ?>
-                        <input type="hidden" name="action" value="import_csv_data_posts">
-
-                        <div style="margin-bottom: 15px;">
-                            <label for="csv_file"><strong>Select CSV File:</strong></label><br>
-                            <input type="file" name="file" id="csv_file" required accept=".csv" style="margin-top: 5px;">
-
-                            <p style="margin: 10px 0 0 0; font-size: 12px;">
-                                <em>CSV format: type, title, password, parent, link, image_url</em><br>
-                                <em>type: school, class, entity</em><br>
-                                <a href="#" onclick="downloadSample();" style="color: #0073aa;">Download Sample Format</a>
-                            </p>
-                        </div>
-
-                        <div>
-                            <input type="submit" class="btn btn-primary" name="importSubmit" value="Import">
-                            <button type="button" class="btn" onclick="formToggle('importFrm');"
-                                style="margin-left: 10px;">Cancel</button>
-                        </div>
-                    </form>
+            <div class="col-md-12" id="importFrm"
+                style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+                <div class="col-md-6 head">
+                    <div class="float-end">
+                        <a href="<?php echo admin_url('edit.php?post_type=school'); ?>" class="btn btn-primary"
+                            style="margin-right: 5px;">
+                            View Schools
+                        </a>
+                        <a href="<?php echo admin_url('edit.php?post_type=class'); ?>" class="btn btn-primary"
+                            style="margin-right: 5px;">
+                            View Classes
+                        </a>
+                        <a href="<?php echo admin_url('edit.php?post_type=entity'); ?>" class="btn btn-primary">
+                            View Entities
+                        </a>
+                    </div>
                 </div>
+                <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
+                    enctype="multipart/form-data" class="col-md-6">
+                    <?php wp_nonce_field('bb_data_import', 'bb_data_nonce'); ?>
+                    <input type="hidden" name="action" value="import_csv_data_posts">
+
+                    <div style="margin-bottom: 15px;">
+                        <input type="file" name="file" id="csv_file" required accept=".csv" style="margin-top: 5px;">
+
+                        <p style="margin: 10px 0 0 0; font-size: 12px;">
+                            <em>CSV format: type, title, password, parent, link, image_url</em> |
+                            <em>type: school, class, entity</em><br>
+                        </p>
+                        <p style="margin: 10px 0 0 0; font-size: 12px;">
+
+                            <a href="#" onclick="downloadSample();" style="color: #0073aa;">Download Sample Format</a>
+                        </p>
+                    </div>
+
+                    <div>
+                        <input type="submit" class="btn btn-primary" name="importSubmit" value="Import">
+                    </div>
+                </form>
+            </div>
             <!-- JavaScript functions -->
-            <script>   
+            <script>
                 function downloadSample() {
-                    var csvContent = "type,title,password,parent,link,image_url\nschool,Trường THPT ABC,,,,\nclass,Lớp 12A1,123456,Trường THPT ABC,,\nentity,Bài học 1,password123,Lớp 12A1,https://example.com,http://localhost/wp_practice/wp-content/uploads/2025/09/lesson1.png";
+                    var csvContent = "type,title,password,parent,link,image_url\nschool,Field 1,,,,\nclass,Class 1 - Field 1,123456,Field 1,,\nentity,Lesson 1,password123,Class 1,https://example.com,http://localhost/wp_practice/wp-content/uploads/2025/09/lesson1.png";
                     var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                     var link = document.createElement("a");
                     var url = URL.createObjectURL(blob);
                     link.setAttribute("href", url);
-                    link.setAttribute("download", "sample-bbdatas-posts.csv");
+                    link.setAttribute("download", "sample-data.csv");
                     link.style.visibility = 'hidden';
                     document.body.appendChild(link);
                     link.click();
