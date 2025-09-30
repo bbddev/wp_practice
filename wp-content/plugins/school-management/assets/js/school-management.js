@@ -1,4 +1,9 @@
 jQuery(document).ready(function ($) {
+  // Pagination variables
+  let allEntities = [];
+  let currentPage = 1;
+  const entitiesPerPage = 12;
+  
   // Load schools on page load
   loadSchools();
 
@@ -15,6 +20,9 @@ jQuery(document).ready(function ($) {
     // Reset class dropdown and entities
     $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
     $("#entity-grid").empty();
+    $("#pagination-container").hide();
+    allEntities = [];
+    currentPage = 1;
   });
 
   // Handle class selection
@@ -26,6 +34,9 @@ jQuery(document).ready(function ($) {
     } else {
       $("#entity-container").hide();
       $("#entity-grid").empty();
+      $("#pagination-container").hide();
+      allEntities = [];
+      currentPage = 1;
     }
   });
 
@@ -155,37 +166,17 @@ jQuery(document).ready(function ($) {
         xhr.setRequestHeader("X-WP-Nonce", schoolManagementAjax.nonce);
       },
       success: function (data) {
-        const $grid = $("#entity-grid");
-        $grid.empty();
-
         if (data && data.length > 0) {
-          // Sort entities naturally by title before displaying
+          // Sort entities naturally by title before storing
           data.sort(naturalSort);
-
-          $.each(data, function (index, entity) {
-            let entityHtml =
-              '<div class="entity-item" data-entity-id="' + entity.id + '"';
-
-            if (entity.link) {
-              entityHtml += ' data-entity-link="' + entity.link + '"';
-            }
-
-            entityHtml += ">";
-
-            if (entity.image) {
-              entityHtml +=
-                '<img src="' + entity.image + '" alt="' + entity.title + '">';
-            } else {
-              entityHtml += '<div class="no-image">Không có hình</div>';
-            }
-
-            entityHtml += "<h4>" + entity.title + "</h4>";
-            entityHtml += "</div>";
-
-            $grid.append(entityHtml);
-          });
+          allEntities = data;
+          currentPage = 1;
+          displayEntities();
+          createPagination();
         } else {
+          const $grid = $("#entity-grid");
           $grid.html("<p>Không có bài học nào trong lớp này.</p>");
+          $("#pagination-container").hide();
         }
       },
       error: function () {
@@ -193,6 +184,93 @@ jQuery(document).ready(function ($) {
       },
     });
   }
+
+  function displayEntities() {
+    const $grid = $("#entity-grid");
+    $grid.empty();
+
+    const startIndex = (currentPage - 1) * entitiesPerPage;
+    const endIndex = startIndex + entitiesPerPage;
+    const entitiesToShow = allEntities.slice(startIndex, endIndex);
+
+    $.each(entitiesToShow, function (index, entity) {
+      let entityHtml =
+        '<div class="entity-item" data-entity-id="' + entity.id + '"';
+
+      if (entity.link) {
+        entityHtml += ' data-entity-link="' + entity.link + '"';
+      }
+
+      entityHtml += ">";
+
+      if (entity.image) {
+        entityHtml +=
+          '<img src="' + entity.image + '" alt="' + entity.title + '">';
+      } else {
+        entityHtml += '<div class="no-image">Không có hình</div>';
+      }
+
+      entityHtml += "<h4>" + entity.title + "</h4>";
+      entityHtml += "</div>";
+
+      $grid.append(entityHtml);
+    });
+  }
+
+  function createPagination() {
+    const totalPages = Math.ceil(allEntities.length / entitiesPerPage);
+    
+    if (totalPages <= 1) {
+      $("#pagination-container").hide();
+      return;
+    }
+
+    const $pagination = $("#pagination-container");
+    $pagination.empty();
+
+    let paginationHtml = '<nav aria-label="Phân trang bài học"><ul class="pagination justify-content-center">';
+
+    // Previous button
+    if (currentPage > 1) {
+      paginationHtml += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">« Trước</a></li>';
+    } else {
+      paginationHtml += '<li class="page-item disabled"><span class="page-link">« Trước</span></li>';
+    }
+
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === currentPage) {
+        paginationHtml += '<li class="page-item active"><span class="page-link">' + i + '</span></li>';
+      } else {
+        paginationHtml += '<li class="page-item"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
+      }
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+      paginationHtml += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">Sau »</a></li>';
+    } else {
+      paginationHtml += '<li class="page-item disabled"><span class="page-link">Sau »</span></li>';
+    }
+
+    paginationHtml += '</ul></nav>';
+    
+    $pagination.html(paginationHtml).show();
+  }
+
+  // Handle pagination click
+  $(document).on("click", ".pagination .page-link[data-page]", function (e) {
+    e.preventDefault();
+    const page = parseInt($(this).data("page"));
+    if (page !== currentPage) {
+      currentPage = page;
+      displayEntities();
+      createPagination();
+      
+      // Scroll to top of entity container
+      $("#entity-container")[0].scrollIntoView({ behavior: 'smooth' });
+    }
+  });
 
   // Handle entity click
   $(document).on("click", ".entity-item", function () {

@@ -226,6 +226,64 @@
   width: 100%;
 }
 
+/* Pagination Styles */
+#pagination-container {
+  margin-top: 30px;
+}
+
+.pagination {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
+}
+
+.page-item {
+  display: block;
+}
+
+.page-link {
+  position: relative;
+  display: block;
+  padding: 8px 12px;
+  margin-left: -1px;
+  line-height: 1.25;
+  color: #007cba;
+  text-decoration: none;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.page-link:hover {
+  z-index: 2;
+  color: #0056b3;
+  text-decoration: none;
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.page-item.active .page-link {
+  z-index: 3;
+  color: #fff;
+  background-color: #007cba;
+  border-color: #007cba;
+}
+
+.page-item.disabled .page-link {
+  color: #6c757d;
+  pointer-events: none;
+  cursor: auto;
+  background-color: #fff;
+  border-color: #dee2e6;
+}
+
+.justify-content-center {
+  justify-content: center;
+}
+
 /* Responsive Modal */
 @media (max-width: 576px) {
   .modal-dialog {
@@ -242,5 +300,11 @@
 
   .modal-footer {
     padding: 15px 20px;
+  }
+
+  /* Responsive pagination */
+  .page-link {
+    padding: 6px 10px;
+    font-size: 14px;
   }
 }

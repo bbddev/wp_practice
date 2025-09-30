@@ -18,6 +18,9 @@
         <div id="entity-grid" class="entity-grid">
             <!-- AJAX -->
         </div>
+        <div id="pagination-container" style="display: none; margin-top: 20px;">
+            <!-- Pagination will be generated here -->
+        </div>
     </div>
 </div>
 
