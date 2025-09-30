@@ -51,7 +51,7 @@ function enqueue_school_management_frontend_scripts()
     // Use file modification time as version to prevent caching issues
     $css_version = filemtime(SCHOOLPLUGIN_PATH . '/assets/style/school-management.css');
     $js_version = filemtime(SCHOOLPLUGIN_PATH . '/assets/js/school-management.js');
-    
+
     wp_enqueue_style(
         'school-management-css',
         SCHOOLPLUGIN_URL . '/assets/style/school-management.css',

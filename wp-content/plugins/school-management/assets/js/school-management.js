@@ -325,7 +325,7 @@ jQuery(document).ready(function ($) {
   $("#toggleClassPassword").on("click", function () {
     const passwordInput = $("#classPasswordInput");
     const passwordIcon = $("#classPasswordIcon");
-    
+
     if (passwordInput.attr("type") === "password") {
       passwordInput.attr("type", "text");
       passwordIcon.removeClass("fa-eye").addClass("fa-eye-slash");
@@ -339,7 +339,7 @@ jQuery(document).ready(function ($) {
   $("#toggleLessonPassword").on("click", function () {
     const passwordInput = $("#lessonPasswordInput");
     const passwordIcon = $("#lessonPasswordIcon");
-    
+
     if (passwordInput.attr("type") === "password") {
       passwordInput.attr("type", "text");
       passwordIcon.removeClass("fa-eye").addClass("fa-eye-slash");
