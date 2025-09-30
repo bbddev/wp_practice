@@ -98,6 +98,95 @@ function bb_data_plugin_start_session()
     }
 }
 
+// Handle CSV export using wp_posts
+add_action('wp_ajax_export_csv_data_posts', 'bb_data_plugin_export_csv_posts');
+function bb_data_plugin_export_csv_posts()
+{
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['bb_data_nonce'], 'bb_data_export')) {
+        wp_die('Security check failed');
+    }
+
+    // Get all data from the three post types
+    $schools = get_posts(array(
+        'post_type' => 'school',
+        'numberposts' => -1,
+        'post_status' => 'publish'
+    ));
+
+    $classes = get_posts(array(
+        'post_type' => 'class',
+        'numberposts' => -1,
+        'post_status' => 'publish'
+    ));
+
+    $entities = get_posts(array(
+        'post_type' => 'entity',
+        'numberposts' => -1,
+        'post_status' => 'publish'
+    ));
+
+    // Set headers for CSV download
+    $filename = 'exported-data-' . date('Y-m-d-H-i-s') . '.csv';
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=' . $filename);
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    // Create output stream
+    $output = fopen('php://output', 'w');
+
+    // Add CSV headers
+    fputcsv($output, array('type', 'title', 'password', 'parent', 'link', 'image_url'));
+
+    // Export schools
+    foreach ($schools as $school) {
+        fputcsv($output, array(
+            'school',
+            $school->post_title,
+            '', // Schools don't have passwords
+            '', // Schools don't have parents
+            '', // Schools don't have links
+            ''  // Schools don't have images
+        ));
+    }
+
+    // Export classes
+    foreach ($classes as $class) {
+        $password = get_post_meta($class->ID, 'class_password', true);
+        $parent = get_post_meta($class->ID, 'Thuộc Trường', true);
+
+        fputcsv($output, array(
+            'class',
+            $class->post_title,
+            $password,
+            $parent,
+            '', // Classes don't have links
+            ''  // Classes don't have images
+        ));
+    }
+
+    // Export entities
+    foreach ($entities as $entity) {
+        $password = get_post_meta($entity->ID, 'lesson_password', true);
+        $parent = get_post_meta($entity->ID, 'Thuộc lớp', true);
+        $link = get_post_meta($entity->ID, 'Link khi click', true);
+        $image_url = get_post_meta($entity->ID, 'Hình', true);
+
+        fputcsv($output, array(
+            'entity',
+            $entity->post_title,
+            $password,
+            $parent,
+            $link,
+            $image_url
+        ));
+    }
+
+    fclose($output);
+    exit();
+}
+
 // Handle CSV import using wp_posts
 add_action('wp_ajax_import_csv_data_posts', 'bb_data_plugin_import_csv_posts');
 function bb_data_plugin_import_csv_posts()
@@ -342,9 +431,13 @@ function bb_data_plugin_posts_admin_page()
                             style="margin-right: 5px;">
                             View Classes
                         </a>
-                        <a href="<?php echo admin_url('edit.php?post_type=entity'); ?>" class="btn btn-primary">
+                        <a href="<?php echo admin_url('edit.php?post_type=entity'); ?>" class="btn btn-primary"
+                            style="margin-right: 5px;">
                             View Entities
                         </a>
+                        <button type="button" class="btn btn-success" onclick="exportData();" style="margin-right: 5px;">
+                            Export CSV
+                        </button>
                     </div>
                 </div>
                 <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
@@ -383,6 +476,45 @@ function bb_data_plugin_posts_admin_page()
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                }
+
+                function exportData() {
+                    // Show loading message
+                    var exportBtn = event.target;
+                    var originalText = exportBtn.innerHTML;
+                    exportBtn.innerHTML = 'Exporting...';
+                    exportBtn.disabled = true;
+
+                    // Create a form to submit export request
+                    var form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '<?php echo esc_url(admin_url('admin-ajax.php')); ?>';
+                    form.style.display = 'none';
+
+                    // Add nonce field
+                    var nonceField = document.createElement('input');
+                    nonceField.type = 'hidden';
+                    nonceField.name = 'bb_data_nonce';
+                    nonceField.value = '<?php echo wp_create_nonce('bb_data_export'); ?>';
+                    form.appendChild(nonceField);
+
+                    // Add action field
+                    var actionField = document.createElement('input');
+                    actionField.type = 'hidden';
+                    actionField.name = 'action';
+                    actionField.value = 'export_csv_data_posts';
+                    form.appendChild(actionField);
+
+                    // Add form to body and submit
+                    document.body.appendChild(form);
+                    form.submit();
+
+                    // Reset button after a short delay
+                    setTimeout(function () {
+                        exportBtn.innerHTML = originalText;
+                        exportBtn.disabled = false;
+                        document.body.removeChild(form);
+                    }, 2000);
                 }
             </script>
             <?php
