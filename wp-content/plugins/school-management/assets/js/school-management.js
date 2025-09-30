@@ -228,33 +228,84 @@ jQuery(document).ready(function ($) {
     const $pagination = $("#pagination-container");
     $pagination.empty();
 
-    let paginationHtml = '<nav aria-label="Phân trang bài học"><ul class="pagination justify-content-center">';
+    let paginationHtml =
+      '<nav aria-label="Phân trang bài học"><ul class="pagination justify-content-center">';
 
     // Previous button
     if (currentPage > 1) {
-      paginationHtml += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage - 1) + '">« Trước</a></li>';
+      paginationHtml +=
+        '<li class="page-item"><a class="page-link" href="#" data-page="' +
+        (currentPage - 1) +
+        '">« Trước</a></li>';
     } else {
-      paginationHtml += '<li class="page-item disabled"><span class="page-link">« Trước</span></li>';
+      paginationHtml +=
+        '<li class="page-item disabled"><span class="page-link">« Trước</span></li>';
     }
 
-    // Page numbers
-    for (let i = 1; i <= totalPages; i++) {
-      if (i === currentPage) {
-        paginationHtml += '<li class="page-item active"><span class="page-link">' + i + '</span></li>';
-      } else {
-        paginationHtml += '<li class="page-item"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
+    // Calculate page range (show 3 pages around current page)
+    const maxVisiblePages = 3;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    // Adjust start page if we're near the end
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    // First page with ellipsis if needed
+    if (startPage > 1) {
+      paginationHtml +=
+        '<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>';
+      if (startPage > 2) {
+        paginationHtml +=
+          '<li class="page-item disabled"><span class="page-link">...</span></li>';
       }
+    }
+
+    // Page numbers in visible range
+    for (let i = startPage; i <= endPage; i++) {
+      if (i === currentPage) {
+        paginationHtml +=
+          '<li class="page-item active"><span class="page-link">' +
+          i +
+          "</span></li>";
+      } else {
+        paginationHtml +=
+          '<li class="page-item"><a class="page-link" href="#" data-page="' +
+          i +
+          '">' +
+          i +
+          "</a></li>";
+      }
+    }
+
+    // Last page with ellipsis if needed
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        paginationHtml +=
+          '<li class="page-item disabled"><span class="page-link">...</span></li>';
+      }
+      paginationHtml +=
+        '<li class="page-item"><a class="page-link" href="#" data-page="' +
+        totalPages +
+        '">' +
+        totalPages +
+        "</a></li>";
     }
 
     // Next button
     if (currentPage < totalPages) {
-      paginationHtml += '<li class="page-item"><a class="page-link" href="#" data-page="' + (currentPage + 1) + '">Sau »</a></li>';
+      paginationHtml +=
+        '<li class="page-item"><a class="page-link" href="#" data-page="' +
+        (currentPage + 1) +
+        '">Sau »</a></li>';
     } else {
-      paginationHtml += '<li class="page-item disabled"><span class="page-link">Sau »</span></li>';
+      paginationHtml +=
+        '<li class="page-item disabled"><span class="page-link">Sau »</span></li>';
     }
 
-    paginationHtml += '</ul></nav>';
-    
+    paginationHtml += "</ul></nav>";
+
     $pagination.html(paginationHtml).show();
   }
 
@@ -266,9 +317,9 @@ jQuery(document).ready(function ($) {
       currentPage = page;
       displayEntities();
       createPagination();
-      
+
       // Scroll to top of entity container
-      $("#entity-container")[0].scrollIntoView({ behavior: 'smooth' });
+      $("#entity-container")[0].scrollIntoView({ behavior: "smooth" });
     }
   });
 
