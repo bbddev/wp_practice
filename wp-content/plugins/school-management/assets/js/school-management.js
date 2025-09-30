@@ -231,6 +231,8 @@ jQuery(document).ready(function ($) {
           $("#entity-container").show();
         } else {
           $("#classPasswordError").text("Mật khẩu không đúng").show();
+          // Clear input when password is wrong
+          $("#classPasswordInput").val("").focus();
         }
       },
       error: function () {
@@ -284,6 +286,8 @@ jQuery(document).ready(function ($) {
           window.open(entityLink, "_blank");
         } else {
           $("#lessonPasswordError").text("Mật khẩu không đúng").show();
+          // Clear input when password is wrong
+          $("#lessonPasswordInput").val("").focus();
         }
       },
       error: function () {
@@ -305,6 +309,43 @@ jQuery(document).ready(function ($) {
       // Enter key
       e.preventDefault();
       submitLessonPassword();
+    }
+  });
+
+  // Clear error messages when typing in password inputs
+  $("#classPasswordInput").on("input", function () {
+    $("#classPasswordError").hide();
+  });
+
+  $("#lessonPasswordInput").on("input", function () {
+    $("#lessonPasswordError").hide();
+  });
+
+  // Toggle password visibility for class password
+  $("#toggleClassPassword").on("click", function () {
+    const passwordInput = $("#classPasswordInput");
+    const passwordIcon = $("#classPasswordIcon");
+    
+    if (passwordInput.attr("type") === "password") {
+      passwordInput.attr("type", "text");
+      passwordIcon.removeClass("fa-eye").addClass("fa-eye-slash");
+    } else {
+      passwordInput.attr("type", "password");
+      passwordIcon.removeClass("fa-eye-slash").addClass("fa-eye");
+    }
+  });
+
+  // Toggle password visibility for lesson password
+  $("#toggleLessonPassword").on("click", function () {
+    const passwordInput = $("#lessonPasswordInput");
+    const passwordIcon = $("#lessonPasswordIcon");
+    
+    if (passwordInput.attr("type") === "password") {
+      passwordInput.attr("type", "text");
+      passwordIcon.removeClass("fa-eye").addClass("fa-eye-slash");
+    } else {
+      passwordInput.attr("type", "password");
+      passwordIcon.removeClass("fa-eye-slash").addClass("fa-eye");
     }
   });
   function forceModalOnTop() {

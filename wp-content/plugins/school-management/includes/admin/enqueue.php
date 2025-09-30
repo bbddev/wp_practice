@@ -32,6 +32,14 @@ function enqueue_school_management_frontend_scripts()
         '4.6.0'
     );
 
+    // Enqueue FontAwesome for icons
+    wp_enqueue_style(
+        'fontawesome-css',
+        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+        array(),
+        '5.15.4'
+    );
+
     wp_enqueue_script(
         'bootstrap-js',
         'https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js',

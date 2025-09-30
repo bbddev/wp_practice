@@ -35,7 +35,14 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="classPasswordInput">Mật khẩu lớp học:</label>
-                    <input type="password" class="form-control" id="classPasswordInput" placeholder="Nhập mật khẩu...">
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="classPasswordInput" placeholder="Nhập mật khẩu...">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleClassPassword">
+                                <i class="fa fa-eye" id="classPasswordIcon"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div id="classPasswordError" class="text-danger mt-2" style="display: none;"></div>
                 </div>
             </div>
@@ -61,7 +68,14 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="lessonPasswordInput">Mật khẩu bài học:</label>
-                    <input type="password" class="form-control" id="lessonPasswordInput" placeholder="Nhập mật khẩu...">
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="lessonPasswordInput" placeholder="Nhập mật khẩu...">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleLessonPassword">
+                                <i class="fa fa-eye" id="lessonPasswordIcon"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div id="lessonPasswordError" class="text-danger mt-2" style="display: none;"></div>
                 </div>
             </div>

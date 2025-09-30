@@ -190,6 +190,42 @@
   transform: scale(1);
 }
 
+/* Password toggle button styling */
+.input-group-append .btn {
+  border-left: none;
+  background: #f8f9fa;
+  border-color: #e0e0e0;
+  color: #6c757d;
+  transition: all 0.3s ease;
+}
+
+.input-group-append .btn:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+.input-group-append .btn:focus {
+  box-shadow: none;
+  border-color: #007cba;
+}
+
+.input-group .form-control:focus {
+  border-right: 1px solid #007cba;
+}
+
+.input-group .form-control {
+  border-right: none;
+}
+
+/* Ensure input group is properly styled */
+.input-group {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  width: 100%;
+}
+
 /* Responsive Modal */
 @media (max-width: 576px) {
   .modal-dialog {
