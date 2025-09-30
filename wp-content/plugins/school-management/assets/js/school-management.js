@@ -103,7 +103,7 @@ jQuery(document).ready(function ($) {
       success: function (data) {
         if (data.has_password) {
           // Show modal to enter password
-        $("#classPasswordModal").modal("show");
+          $("#classPasswordModal").modal("show");
           $("#classPasswordModal").data("class-id", classId);
         } else {
           // Load entities directly
@@ -279,6 +279,9 @@ jQuery(document).ready(function ($) {
       },
     });
   });
+  function forceModalOnTop() {
+    $('.modal-backdrop').remove();
+  }
 
   // Clear error messages when modal is hidden
   $("#classPasswordModal").on("hidden.bs.modal", function () {
@@ -294,7 +297,7 @@ jQuery(document).ready(function ($) {
   // Force modals on top when shown
   $("#classPasswordModal").on("show.bs.modal", function () {
     setTimeout(() => {
-      forceModalOnTop("#classPasswordModal");
+      forceModalOnTop();
     }, 50);
   });
 
@@ -306,13 +309,13 @@ jQuery(document).ready(function ($) {
 
   // Additional fix for when modal is fully shown
   $("#classPasswordModal").on("shown.bs.modal", function () {
-    forceModalOnTop("#classPasswordModal");
+    forceModalOnTop();
     // Focus on input to ensure it's interactive
     $("#classPasswordInput").focus();
   });
 
   $("#lessonPasswordModal").on("shown.bs.modal", function () {
-    forceModalOnTop("#lessonPasswordModal");
+    forceModalOnTop();
     // Focus on input to ensure it's interactive
     $("#lessonPasswordInput").focus();
   });

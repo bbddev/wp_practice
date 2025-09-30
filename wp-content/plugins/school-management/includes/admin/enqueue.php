@@ -40,18 +40,22 @@ function enqueue_school_management_frontend_scripts()
         true
     );
 
+    // Use file modification time as version to prevent caching issues
+    $css_version = filemtime(SCHOOLPLUGIN_PATH . '/assets/style/school-management.css');
+    $js_version = filemtime(SCHOOLPLUGIN_PATH . '/assets/js/school-management.js');
+    
     wp_enqueue_style(
         'school-management-css',
         SCHOOLPLUGIN_URL . '/assets/style/school-management.css',
         array('bootstrap-css'),
-        '1.0.0'
+        $css_version
     );
 
     wp_enqueue_script(
         'school-management-js',
         SCHOOLPLUGIN_URL . '/assets/js/school-management.js',
         array('jquery', 'bootstrap-js'),
-        '1.0.0',
+        $js_version,
         true
     );
 
