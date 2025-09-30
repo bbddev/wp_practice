@@ -41,6 +41,14 @@ jQuery(document).ready(function ($) {
         $dropdown.html('<option value="">-- Chọn trường --</option>');
 
         if (data && data.length > 0) {
+          // Sort schools naturally by title
+          data.sort(function (a, b) {
+            return a.post_title.localeCompare(b.post_title, undefined, {
+              numeric: true,
+              sensitivity: "base",
+            });
+          });
+
           $.each(data, function (index, school) {
             $dropdown.append(
               '<option value="' +
@@ -73,6 +81,14 @@ jQuery(document).ready(function ($) {
         $dropdown.html('<option value="">-- Chọn lớp --</option>');
 
         if (data && data.length > 0) {
+          // Sort classes naturally by title
+          data.sort(function (a, b) {
+            return a.post_title.localeCompare(b.post_title, undefined, {
+              numeric: true,
+              sensitivity: "base",
+            });
+          });
+
           $.each(data, function (index, classItem) {
             $dropdown.append(
               '<option value="' +
@@ -87,6 +103,17 @@ jQuery(document).ready(function ($) {
       error: function () {
         console.error("Error loading classes");
       },
+    });
+  }
+
+  // Function to sort text naturally (handles numbers in text)
+  function naturalSort(a, b) {
+    const aTitle = a.title.toLowerCase();
+    const bTitle = b.title.toLowerCase();
+
+    return aTitle.localeCompare(bTitle, undefined, {
+      numeric: true,
+      sensitivity: "base",
     });
   }
 
@@ -132,6 +159,9 @@ jQuery(document).ready(function ($) {
         $grid.empty();
 
         if (data && data.length > 0) {
+          // Sort entities naturally by title before displaying
+          data.sort(naturalSort);
+
           $.each(data, function (index, entity) {
             let entityHtml =
               '<div class="entity-item" data-entity-id="' + entity.id + '"';
