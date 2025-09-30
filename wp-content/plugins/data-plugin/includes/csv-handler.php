@@ -227,8 +227,34 @@ function bb_data_process_csv_line($line, &$counters)
         return;
     }
 
-    // Check if post exists
-    $existing_post = get_page_by_title($title, OBJECT, $type);
+    // // Check if post exists
+    // $existing_post = get_page_by_title($title, OBJECT, $type);
+
+    // Check if post with same title, type and parent already exists
+    $existing_post = get_posts(array(
+        'post_type' => $type,
+        'title' => $title,
+        'post_status' => array('publish', 'draft'),
+        'numberposts' => 1,
+        'meta_query' => array(
+            array(
+                'key' => $type === 'class' ? 'Thuộc Trường' : ($type === 'entity' ? 'Thuộc lớp' : ''),
+                'value' => $parent,
+                'compare' => '='
+            )
+        )
+    ));
+
+    // For school type or when no parent, use simple check
+    if ($type === 'school' || empty($parent)) {
+        $existing_post = get_posts(array(
+            'post_type' => $type,
+            'title' => $title,
+            'post_status' => array('publish', 'draft'),
+            'numberposts' => 1
+        ));
+    }
+
 
     if ($existing_post) {
         bb_data_update_existing_post($existing_post, $type, $password, $parent, $link, $image_url, $counters);

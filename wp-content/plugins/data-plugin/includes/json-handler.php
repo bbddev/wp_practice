@@ -268,8 +268,31 @@ function bb_data_import_school($data, &$counters)
 function bb_data_import_class($data, &$counters)
 {
     $title = sanitize_text_field($data['title']);
-    $existing_post = get_page_by_title($title, OBJECT, 'class');
+    $parent = !empty($data['parent_class']) ? sanitize_text_field($data['parent_class']) : '';
+    $type = $data['type'];
+    $existing_post = get_posts(array(
+        'post_type' => $type,
+        'title' => $title,
+        'post_status' => array('publish', 'draft'),
+        'numberposts' => 1,
+        'meta_query' => array(
+            array(
+                'key' =>  'Thuộc Trường',
+                'value' => $parent,
+                'compare' => '='
+            )
+        )
+    ));
 
+    // For school type or when no parent, use simple check
+    if ($type === 'school' || empty($parent)) {
+        $existing_post = get_posts(array(
+            'post_type' => $type,
+            'title' => $title,
+            'post_status' => array('publish', 'draft'),
+            'numberposts' => 1
+        ));
+    }
     if ($existing_post) {
         bb_data_update_class_meta($existing_post->ID, $data);
         $counters['updated']++;
@@ -292,8 +315,31 @@ function bb_data_import_class($data, &$counters)
 function bb_data_import_entity($data, &$counters)
 {
     $title = sanitize_text_field($data['title']);
-    $existing_post = get_page_by_title($title, OBJECT, 'entity');
+    $parent = !empty($data['parent_class']) ? sanitize_text_field($data['parent_class']) : '';
+    $type = $data['type'];
+    $existing_post = get_posts(array(
+        'post_type' => $type,
+        'title' => $title,
+        'post_status' => array('publish', 'draft'),
+        'numberposts' => 1,
+        'meta_query' => array(
+            array(
+                'key' => 'Thuộc lớp',
+                'value' => $parent,
+                'compare' => '='
+            )
+        )
+    ));
 
+    // For school type or when no parent, use simple check
+    if ($type === 'school' || empty($parent)) {
+        $existing_post = get_posts(array(
+            'post_type' => $type,
+            'title' => $title,
+            'post_status' => array('publish', 'draft'),
+            'numberposts' => 1
+        ));
+    }
     if ($existing_post) {
         bb_data_update_entity_meta($existing_post->ID, $data);
         $counters['updated']++;
