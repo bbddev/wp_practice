@@ -4,12 +4,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * Enqueue media scripts for admin
- */
 function enqueue_media_scripts($hook_suffix)
 {
-    // Chỉ enqueue trên trang edit entity
+    // Only enqueue on the edit entity page
     global $post_type;
     if ('entity' === $post_type) {
         wp_enqueue_media();
@@ -17,14 +14,10 @@ function enqueue_media_scripts($hook_suffix)
     }
 }
 
-/**
- * Enqueue frontend scripts for school management
- */
 function enqueue_school_management_frontend_scripts()
 {
     wp_enqueue_script('jquery');
 
-    // Enqueue Bootstrap CSS và JS cho modal
     wp_enqueue_style(
         'bootstrap-css',
         'https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css',
@@ -32,7 +25,6 @@ function enqueue_school_management_frontend_scripts()
         '4.6.0'
     );
 
-    // Enqueue FontAwesome for icons
     wp_enqueue_style(
         'fontawesome-css',
         'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
