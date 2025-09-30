@@ -16,7 +16,7 @@ define('BB_DATA_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 // Include required files
 require_once BB_DATA_PLUGIN_PATH . 'includes/post-types.php';
-require_once BB_DATA_PLUGIN_PATH . 'includes/admin-page.php';
+require_once BB_DATA_PLUGIN_PATH . 'includes/templates/admin-page.php';
 require_once BB_DATA_PLUGIN_PATH . 'includes/csv-handler.php';
 require_once BB_DATA_PLUGIN_PATH . 'includes/json-handler.php';
 require_once BB_DATA_PLUGIN_PATH . 'includes/admin-columns.php';

@@ -61,7 +61,7 @@ bb_data_plugin_export_json_posts()    // Export JSON
 bb_data_plugin_import_json_posts()    // Import JSON
 ```
 
-### Admin Interface (includes/admin-page.php)
+### Admin Interface (includes/templates/admin-page.php)
 
 ```php
 bb_data_plugin_posts_admin_page()     // Main admin page

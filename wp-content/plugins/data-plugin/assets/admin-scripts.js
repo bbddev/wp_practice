@@ -2,11 +2,21 @@
  * Admin JavaScript for BB Data Plugin
  */
 function formToggle(ID) {
-  var element = document.getElementById(ID);
-  if (element.style.display === "none") {
-    element.style.display = "block";
-  } else {
-    element.style.display = "none";
+  var jsonForm = document.getElementById("jsonForm");
+  var csvForm = document.getElementById("csvForm");
+  var importCsvBtn = document.getElementById("importCsvBtn");
+  var importJsonBtn = document.getElementById("importJsonBtn");
+
+
+
+  // Ẩn tất cả forms trước
+  csvForm.style.display = "none";
+  jsonForm.style.display = "none";
+
+  // Hiển thị form được chọn
+  var targetForm = document.getElementById(ID);
+  if (targetForm) {
+    targetForm.style.display = "block";
   }
 }
 

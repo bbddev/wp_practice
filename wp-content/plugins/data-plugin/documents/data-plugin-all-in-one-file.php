@@ -653,7 +653,7 @@ function bb_data_plugin_import_csv_posts()
                 fclose($csvFile);
 
                 $res_status = 'success';
-                $res_msg = "Import hoàn tất! Tổng cộng: {$total_imported} dòng đã import thành công (Tạo mới: {$total_created}, Cập nhật: {$total_updated}, Bỏ qua: {$total_skipped}).";
+                $res_msg = "CSV Import hoàn tất! Tổng cộng: {$total_imported} dòng đã import thành công (Tạo mới: {$total_created}, Cập nhật: {$total_updated}, Bỏ qua: {$total_skipped}).";
             } else {
                 $res_status = 'danger';
                 $res_msg = 'Something went wrong, please try again.';
