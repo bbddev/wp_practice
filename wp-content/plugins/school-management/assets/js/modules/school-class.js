@@ -1,43 +1,28 @@
-/**
- * School and Class Management Module
- */
 window.SchoolManagement = window.SchoolManagement || {};
 
 window.SchoolManagement.SchoolClass = {
-  /**
-   * Initialize school and class dropdowns
-   * @param {Object} $ - jQuery object
-   */
+
   init: function ($) {
     this.$ = $;
     this.bindEvents();
     this.loadSchools();
   },
 
-  /**
-   * Bind events for school and class dropdowns
-   */
   bindEvents: function () {
     const self = this;
     const $ = this.$;
 
-    // Handle school selection
     $("#school-dropdown").on("change", function () {
       const schoolId = $(this).val();
       self.handleSchoolChange(schoolId);
     });
 
-    // Handle class selection
     $("#class-dropdown").on("change", function () {
       const classId = $(this).val();
       self.handleClassChange(classId);
     });
   },
 
-  /**
-   * Handle school dropdown change
-   * @param {string} schoolId - Selected school ID
-   */
   handleSchoolChange: function (schoolId) {
     const $ = this.$;
     if (schoolId) {
@@ -48,21 +33,15 @@ window.SchoolManagement.SchoolClass = {
       $("#entity-container").hide();
     }
 
-    // Reset class dropdown and entities
     $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
     $("#entity-grid").empty();
     $("#pagination-container").hide();
 
-    // Reset entity module state
     if (window.SchoolManagement.Entity) {
       window.SchoolManagement.Entity.reset();
     }
   },
 
-  /**
-   * Handle class dropdown change
-   * @param {string} classId - Selected class ID
-   */
   handleClassChange: function (classId) {
     const $ = this.$;
     if (classId) {
