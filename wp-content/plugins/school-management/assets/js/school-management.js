@@ -200,8 +200,8 @@ jQuery(document).ready(function ($) {
     });
   });
 
-  // Handle class password submission
-  $("#submitClassPassword").on("click", function () {
+  // Function to submit class password
+  function submitClassPassword() {
     const classId = $("#classPasswordModal").data("class-id");
     const password = $("#classPasswordInput").val();
 
@@ -237,10 +237,24 @@ jQuery(document).ready(function ($) {
         $("#classPasswordError").text("Có lỗi xảy ra. Vui lòng thử lại").show();
       },
     });
+  }
+
+  // Handle class password submission via button click
+  $("#submitClassPassword").on("click", function () {
+    submitClassPassword();
   });
 
-  // Handle lesson password submission
-  $("#submitLessonPassword").on("click", function () {
+  // Handle class password submission via Enter key
+  $("#classPasswordInput").on("keypress", function (e) {
+    if (e.which === 13) {
+      // Enter key
+      e.preventDefault();
+      submitClassPassword();
+    }
+  });
+
+  // Function to submit lesson password
+  function submitLessonPassword() {
     const entityId = $("#lessonPasswordModal").data("entity-id");
     const entityLink = $("#lessonPasswordModal").data("entity-link");
     const password = $("#lessonPasswordInput").val();
@@ -278,9 +292,23 @@ jQuery(document).ready(function ($) {
           .show();
       },
     });
+  }
+
+  // Handle lesson password submission via button click
+  $("#submitLessonPassword").on("click", function () {
+    submitLessonPassword();
+  });
+
+  // Handle lesson password submission via Enter key
+  $("#lessonPasswordInput").on("keypress", function (e) {
+    if (e.which === 13) {
+      // Enter key
+      e.preventDefault();
+      submitLessonPassword();
+    }
   });
   function forceModalOnTop() {
-    $('.modal-backdrop').remove();
+    $(".modal-backdrop").remove();
   }
 
   // Clear error messages when modal is hidden
