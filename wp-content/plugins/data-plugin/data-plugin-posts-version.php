@@ -194,6 +194,239 @@ function bb_data_plugin_export_json_posts()
     exit();
 }
 
+// Handle JSON import using wp_posts
+add_action('wp_ajax_import_json_data_posts', 'bb_data_plugin_import_json_posts');
+function bb_data_plugin_import_json_posts()
+{
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['bb_data_nonce'], 'bb_data_import_json')) {
+        wp_die('Security check failed');
+    }
+
+    $res_status = $res_msg = '';
+
+    if (isset($_POST['importJsonSubmit'])) {
+        // Allowed mime types for JSON
+        $jsonMimes = array('application/json', 'text/json', 'text/plain', 'application/octet-stream');
+
+        // Validate whether selected file is a JSON file
+        if (!empty($_FILES['json_file']['name']) && in_array($_FILES['json_file']['type'], $jsonMimes)) {
+
+            // If the file is uploaded
+            if (is_uploaded_file($_FILES['json_file']['tmp_name'])) {
+
+                // Read JSON file content
+                $jsonContent = file_get_contents($_FILES['json_file']['tmp_name']);
+                $jsonData = json_decode($jsonContent, true);
+
+                // Validate JSON structure
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $res_status = 'danger';
+                    $res_msg = 'Invalid JSON file format. Error: ' . json_last_error_msg();
+                } elseif (!isset($jsonData['schools']) || !isset($jsonData['classes']) || !isset($jsonData['entities'])) {
+                    $res_status = 'danger';
+                    $res_msg = 'Invalid JSON structure. Missing required sections: schools, classes, or entities.';
+                } else {
+                    // Initialize counters
+                    $total_imported = 0;
+                    $total_updated = 0;
+                    $total_created = 0;
+                    $total_skipped = 0;
+
+                    // Import schools
+                    if (isset($jsonData['schools']) && is_array($jsonData['schools'])) {
+                        foreach ($jsonData['schools'] as $school) {
+                            if (!isset($school['title']) || empty($school['title'])) {
+                                $total_skipped++;
+                                continue;
+                            }
+
+                            $title = sanitize_text_field($school['title']);
+
+                            // Check if school already exists
+                            $existing_posts = get_posts(array(
+                                'post_type' => 'school',
+                                'title' => $title,
+                                'post_status' => array('publish', 'draft'),
+                                'numberposts' => 1
+                            ));
+
+                            if ($existing_posts) {
+                                // Update existing
+                                $post_id = $existing_posts[0]->ID;
+                                wp_update_post(array(
+                                    'ID' => $post_id,
+                                    'post_title' => $title,
+                                    'post_status' => 'publish'
+                                ));
+                                $total_updated++;
+                            } else {
+                                // Create new
+                                $post_id = wp_insert_post(array(
+                                    'post_title' => $title,
+                                    'post_type' => 'school',
+                                    'post_status' => 'publish'
+                                ));
+                                if ($post_id && !is_wp_error($post_id)) {
+                                    $total_created++;
+                                }
+                            }
+                            $total_imported++;
+                        }
+                    }
+
+                    // Import classes
+                    if (isset($jsonData['classes']) && is_array($jsonData['classes'])) {
+                        foreach ($jsonData['classes'] as $class) {
+                            if (!isset($class['title']) || empty($class['title'])) {
+                                $total_skipped++;
+                                continue;
+                            }
+
+                            $title = sanitize_text_field($class['title']);
+                            $password = isset($class['password']) ? sanitize_text_field($class['password']) : '';
+                            $parent = isset($class['parent_school']) ? sanitize_text_field($class['parent_school']) : '';
+
+                            // Check if class already exists
+                            $existing_posts = get_posts(array(
+                                'post_type' => 'class',
+                                'title' => $title,
+                                'post_status' => array('publish', 'draft'),
+                                'numberposts' => 1,
+                                'meta_query' => array(
+                                    array(
+                                        'key' => 'Thuộc Trường',
+                                        'value' => $parent,
+                                        'compare' => '='
+                                    )
+                                )
+                            ));
+
+                            $meta_input = array();
+                            if ($password)
+                                $meta_input['class_password'] = $password;
+                            if ($parent)
+                                $meta_input['Thuộc Trường'] = $parent;
+
+                            if ($existing_posts) {
+                                // Update existing
+                                $post_id = $existing_posts[0]->ID;
+                                wp_update_post(array(
+                                    'ID' => $post_id,
+                                    'post_title' => $title,
+                                    'post_status' => 'publish'
+                                ));
+                                foreach ($meta_input as $key => $value) {
+                                    update_post_meta($post_id, $key, $value);
+                                }
+                                $total_updated++;
+                            } else {
+                                // Create new
+                                $post_id = wp_insert_post(array(
+                                    'post_title' => $title,
+                                    'post_type' => 'class',
+                                    'post_status' => 'publish',
+                                    'meta_input' => $meta_input
+                                ));
+                                if ($post_id && !is_wp_error($post_id)) {
+                                    $total_created++;
+                                }
+                            }
+                            $total_imported++;
+                        }
+                    }
+
+                    // Import entities
+                    if (isset($jsonData['entities']) && is_array($jsonData['entities'])) {
+                        foreach ($jsonData['entities'] as $entity) {
+                            if (!isset($entity['title']) || empty($entity['title'])) {
+                                $total_skipped++;
+                                continue;
+                            }
+
+                            $title = sanitize_text_field($entity['title']);
+                            $password = isset($entity['password']) ? sanitize_text_field($entity['password']) : '';
+                            $parent = isset($entity['parent_class']) ? sanitize_text_field($entity['parent_class']) : '';
+                            $link = isset($entity['link']) ? esc_url_raw($entity['link']) : '';
+                            $image_url = isset($entity['image_url']) ? esc_url_raw($entity['image_url']) : '';
+
+                            // Check if entity already exists
+                            $existing_posts = get_posts(array(
+                                'post_type' => 'entity',
+                                'title' => $title,
+                                'post_status' => array('publish', 'draft'),
+                                'numberposts' => 1,
+                                'meta_query' => array(
+                                    array(
+                                        'key' => 'Thuộc lớp',
+                                        'value' => $parent,
+                                        'compare' => '='
+                                    )
+                                )
+                            ));
+
+                            $meta_input = array();
+                            if ($password)
+                                $meta_input['lesson_password'] = $password;
+                            if ($parent)
+                                $meta_input['Thuộc lớp'] = $parent;
+                            if ($link)
+                                $meta_input['Link khi click'] = $link;
+                            if ($image_url)
+                                $meta_input['Hình'] = $image_url;
+
+                            if ($existing_posts) {
+                                // Update existing
+                                $post_id = $existing_posts[0]->ID;
+                                wp_update_post(array(
+                                    'ID' => $post_id,
+                                    'post_title' => $title,
+                                    'post_status' => 'publish'
+                                ));
+                                foreach ($meta_input as $key => $value) {
+                                    update_post_meta($post_id, $key, $value);
+                                }
+                                $total_updated++;
+                            } else {
+                                // Create new
+                                $post_id = wp_insert_post(array(
+                                    'post_title' => $title,
+                                    'post_type' => 'entity',
+                                    'post_status' => 'publish',
+                                    'meta_input' => $meta_input
+                                ));
+                                if ($post_id && !is_wp_error($post_id)) {
+                                    $total_created++;
+                                }
+                            }
+                            $total_imported++;
+                        }
+                    }
+
+                    $res_status = 'success';
+                    $res_msg = "JSON Import hoàn tất! Tổng cộng: {$total_imported} dòng đã import thành công (Tạo mới: {$total_created}, Cập nhật: {$total_updated}, Bỏ qua: {$total_skipped}).";
+                }
+            } else {
+                $res_status = 'danger';
+                $res_msg = 'Something went wrong, please try again.';
+            }
+        } else {
+            $res_status = 'danger';
+            $res_msg = 'Please select a valid JSON file.';
+        }
+
+        // Store status in SESSION
+        $_SESSION['response'] = array(
+            'status' => $res_status,
+            'msg' => $res_msg
+        );
+    }
+
+    // Redirect back to the admin page
+    wp_redirect(admin_url('admin.php?page=my-data-plugin-posts'));
+    exit();
+}
+
 // Handle CSV export using wp_posts
 add_action('wp_ajax_export_csv_data_posts', 'bb_data_plugin_export_csv_posts');
 function bb_data_plugin_export_csv_posts()
@@ -558,7 +791,30 @@ function bb_data_plugin_posts_admin_page()
                     </div>
 
                     <div>
-                        <input type="submit" class="btn btn-primary" name="importSubmit" value="Import">
+                        <input type="submit" class="btn btn-primary" name="importSubmit" value="Import CSV">
+                    </div>
+                </form>
+
+                <!-- JSON file upload form -->
+                <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
+                    enctype="multipart/form-data" class="col-md-6" style="margin-top: 20px;">
+                    <?php wp_nonce_field('bb_data_import_json', 'bb_data_nonce'); ?>
+                    <input type="hidden" name="action" value="import_json_data_posts">
+
+                    <div style="margin-bottom: 15px;">
+                        <input type="file" name="json_file" id="json_file" required accept=".json" style="margin-top: 5px;">
+
+                        <p style="margin: 10px 0 0 0; font-size: 12px;">
+                            <em>JSON format: structured data với schools, classes, entities</em><br>
+                        </p>
+                        <p style="margin: 10px 0 0 0; font-size: 12px;">
+                            <a href="#" onclick="downloadJsonSample();" style="color: #0073aa;">Download JSON Sample
+                                Format</a>
+                        </p>
+                    </div>
+
+                    <div>
+                        <input type="submit" class="btn btn-info" name="importJsonSubmit" value="Import JSON">
                     </div>
                 </form>
             </div>
@@ -571,6 +827,57 @@ function bb_data_plugin_posts_admin_page()
                     var url = URL.createObjectURL(blob);
                     link.setAttribute("href", url);
                     link.setAttribute("download", "sample-data.csv");
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+
+                function downloadJsonSample() {
+                    var jsonContent = {
+                        "export_info": {
+                            "export_date": "2025-09-30 14:30:15",
+                            "plugin_version": "1.0",
+                            "total_records": 3
+                        },
+                        "schools": [
+                            {
+                                "id": 1,
+                                "title": "Sample School",
+                                "type": "school",
+                                "created_date": "2025-09-30 10:00:00"
+                            }
+                        ],
+                        "classes": [
+                            {
+                                "id": 2,
+                                "title": "Sample Class",
+                                "type": "class",
+                                "password": "123456",
+                                "parent_school": "Sample School",
+                                "created_date": "2025-09-30 11:00:00"
+                            }
+                        ],
+                        "entities": [
+                            {
+                                "id": 3,
+                                "title": "Sample Entity",
+                                "type": "entity",
+                                "password": "password123",
+                                "parent_class": "Sample Class",
+                                "link": "https://example.com",
+                                "image_url": "https://example.com/image.jpg",
+                                "created_date": "2025-09-30 12:00:00"
+                            }
+                        ]
+                    };
+
+                    var jsonString = JSON.stringify(jsonContent, null, 2);
+                    var blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
+                    var link = document.createElement("a");
+                    var url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", "sample-data.json");
                     link.style.visibility = 'hidden';
                     document.body.appendChild(link);
                     link.click();
