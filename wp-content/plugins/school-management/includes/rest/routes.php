@@ -19,7 +19,7 @@ function register_school_management_routes()
         'callback' => 'get_classes_by_school',
         'args' => array(
             'school_id' => array(
-                'validate_callback' => function($param, $request, $key) {
+                'validate_callback' => function ($param, $request, $key) {
                     return is_numeric($param);
                 }
             ),
@@ -31,9 +31,67 @@ function register_school_management_routes()
         'callback' => 'get_entities_by_class',
         'args' => array(
             'class_id' => array(
-                'validate_callback' => function($param, $request, $key) {
+                'validate_callback' => function ($param, $request, $key) {
                     return is_numeric($param);
                 }
+            ),
+        ),
+    ));
+
+    register_rest_route('school-management/v1', '/check-class-password/(?P<class_id>\d+)', array(
+        'methods' => 'GET',
+        'callback' => 'check_class_password',
+        'args' => array(
+            'class_id' => array(
+                'validate_callback' => function ($param, $request, $key) {
+                    return is_numeric($param);
+                }
+            ),
+        ),
+    ));
+
+    register_rest_route('school-management/v1', '/check-lesson-password/(?P<entity_id>\d+)', array(
+        'methods' => 'GET',
+        'callback' => 'check_lesson_password',
+        'args' => array(
+            'entity_id' => array(
+                'validate_callback' => function ($param, $request, $key) {
+                    return is_numeric($param);
+                }
+            ),
+        ),
+    ));
+
+    register_rest_route('school-management/v1', '/validate-class-password', array(
+        'methods' => 'POST',
+        'callback' => 'validate_class_password',
+        'args' => array(
+            'class_id' => array(
+                'required' => true,
+                'validate_callback' => function ($param, $request, $key) {
+                    return is_numeric($param);
+                }
+            ),
+            'password' => array(
+                'required' => true,
+                'sanitize_callback' => 'sanitize_text_field',
+            ),
+        ),
+    ));
+
+    register_rest_route('school-management/v1', '/validate-lesson-password', array(
+        'methods' => 'POST',
+        'callback' => 'validate_lesson_password',
+        'args' => array(
+            'entity_id' => array(
+                'required' => true,
+                'validate_callback' => function ($param, $request, $key) {
+                    return is_numeric($param);
+                }
+            ),
+            'password' => array(
+                'required' => true,
+                'sanitize_callback' => 'sanitize_text_field',
             ),
         ),
     ));
@@ -44,7 +102,7 @@ function register_school_management_routes()
  */
 function get_schools()
 {
-   $school_list = get_posts(array(
+    $school_list = get_posts(array(
         'post_type' => 'school',
         'numberposts' => -1,
         'post_status' => 'publish'
@@ -59,13 +117,13 @@ function get_classes_by_school($request)
 {
     $school_id = $request['school_id'];
     $school_post = get_post($school_id);
-    
+
     if (!$school_post || $school_post->post_type !== 'school') {
         return new WP_Error('invalid_school', 'Invalid school ID', array('status' => 404));
     }
-    
+
     $school_name = $school_post->post_title;
-    
+
     $classes = get_posts(array(
         'post_type' => 'class',
         'numberposts' => -1,
@@ -78,7 +136,7 @@ function get_classes_by_school($request)
             )
         )
     ));
-    
+
     return $classes;
 }
 
@@ -89,13 +147,13 @@ function get_entities_by_class($request)
 {
     $class_id = $request['class_id'];
     $class_post = get_post($class_id);
-    
+
     if (!$class_post || $class_post->post_type !== 'class') {
         return new WP_Error('invalid_class', 'Invalid class ID', array('status' => 404));
     }
-    
+
     $class_name = $class_post->post_title;
-    
+
     $entities = get_posts(array(
         'post_type' => 'entity',
         'numberposts' => -1,
@@ -108,7 +166,7 @@ function get_entities_by_class($request)
             )
         )
     ));
-    
+
     // Enhance entities with meta data
     $enhanced_entities = array();
     foreach ($entities as $entity) {
@@ -121,6 +179,86 @@ function get_entities_by_class($request)
         );
         $enhanced_entities[] = $enhanced_entity;
     }
-    
+
     return $enhanced_entities;
+}
+
+/**
+ * Check if class has password
+ */
+function check_class_password($request)
+{
+    $class_id = $request['class_id'];
+    $class_post = get_post($class_id);
+
+    if (!$class_post || $class_post->post_type !== 'class') {
+        return new WP_Error('invalid_class', 'Invalid class ID', array('status' => 404));
+    }
+
+    $class_password = get_post_meta($class_id, 'class_password', true);
+
+    return array(
+        'has_password' => !empty($class_password)
+    );
+}
+
+/**
+ * Check if lesson has password
+ */
+function check_lesson_password($request)
+{
+    $entity_id = $request['entity_id'];
+    $entity_post = get_post($entity_id);
+
+    if (!$entity_post || $entity_post->post_type !== 'entity') {
+        return new WP_Error('invalid_entity', 'Invalid entity ID', array('status' => 404));
+    }
+
+    $lesson_password = get_post_meta($entity_id, 'lesson_password', true);
+
+    return array(
+        'has_password' => !empty($lesson_password)
+    );
+}
+
+/**
+ * Validate class password
+ */
+function validate_class_password($request)
+{
+    $class_id = $request['class_id'];
+    $password = $request['password'];
+
+    $class_post = get_post($class_id);
+
+    if (!$class_post || $class_post->post_type !== 'class') {
+        return new WP_Error('invalid_class', 'Invalid class ID', array('status' => 404));
+    }
+
+    $stored_password = get_post_meta($class_id, 'class_password', true);
+
+    return array(
+        'valid' => ($password === $stored_password)
+    );
+}
+
+/**
+ * Validate lesson password
+ */
+function validate_lesson_password($request)
+{
+    $entity_id = $request['entity_id'];
+    $password = $request['password'];
+
+    $entity_post = get_post($entity_id);
+
+    if (!$entity_post || $entity_post->post_type !== 'entity') {
+        return new WP_Error('invalid_entity', 'Invalid entity ID', array('status' => 404));
+    }
+
+    $stored_password = get_post_meta($entity_id, 'lesson_password', true);
+
+    return array(
+        'valid' => ($password === $stored_password)
+    );
 }

@@ -21,8 +21,8 @@ jQuery(document).ready(function ($) {
   $("#class-dropdown").on("change", function () {
     const classId = $(this).val();
     if (classId) {
-      loadEntities(classId);
-      $("#entity-container").show();
+      // Check if class has password first
+      checkClassPassword(classId);
     } else {
       $("#entity-container").hide();
       $("#entity-grid").empty();
@@ -90,6 +90,33 @@ jQuery(document).ready(function ($) {
     });
   }
 
+  function checkClassPassword(classId) {
+    $.ajax({
+      url:
+        schoolManagementAjax.apiUrl +
+        "school-management/v1/check-class-password/" +
+        classId,
+      method: "GET",
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader("X-WP-Nonce", schoolManagementAjax.nonce);
+      },
+      success: function (data) {
+        if (data.has_password) {
+          // Show modal to enter password
+        $("#classPasswordModal").modal("show");
+          $("#classPasswordModal").data("class-id", classId);
+        } else {
+          // Load entities directly
+          loadEntities(classId);
+          $("#entity-container").show();
+        }
+      },
+      error: function () {
+        console.error("Error checking class password");
+      },
+    });
+  }
+
   function loadEntities(classId) {
     $.ajax({
       url:
@@ -106,14 +133,14 @@ jQuery(document).ready(function ($) {
 
         if (data && data.length > 0) {
           $.each(data, function (index, entity) {
-            let entityHtml = '<div class="entity-item">';
+            let entityHtml =
+              '<div class="entity-item" data-entity-id="' + entity.id + '"';
 
             if (entity.link) {
-              entityHtml =
-                '<a href="' +
-                entity.link +
-                '" class="entity-item" target="_blank">';
+              entityHtml += ' data-entity-link="' + entity.link + '"';
             }
+
+            entityHtml += ">";
 
             if (entity.image) {
               entityHtml +=
@@ -123,17 +150,12 @@ jQuery(document).ready(function ($) {
             }
 
             entityHtml += "<h4>" + entity.title + "</h4>";
-
-            if (entity.link) {
-              entityHtml += "</a>";
-            } else {
-              entityHtml += "</div>";
-            }
+            entityHtml += "</div>";
 
             $grid.append(entityHtml);
           });
         } else {
-          $grid.html("<p>Không có entity nào trong lớp này.</p>");
+          $grid.html("<p>Không có bài học nào trong lớp này.</p>");
         }
       },
       error: function () {
@@ -141,4 +163,157 @@ jQuery(document).ready(function ($) {
       },
     });
   }
+
+  // Handle entity click
+  $(document).on("click", ".entity-item", function () {
+    const entityId = $(this).data("entity-id");
+    const entityLink = $(this).data("entity-link");
+
+    if (!entityLink) {
+      return; // No link to navigate to
+    }
+
+    // Check if lesson has password
+    $.ajax({
+      url:
+        schoolManagementAjax.apiUrl +
+        "school-management/v1/check-lesson-password/" +
+        entityId,
+      method: "GET",
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader("X-WP-Nonce", schoolManagementAjax.nonce);
+      },
+      success: function (data) {
+        if (data.has_password) {
+          // Show modal to enter password
+          $("#lessonPasswordModal").modal("show");
+          $("#lessonPasswordModal").data("entity-id", entityId);
+          $("#lessonPasswordModal").data("entity-link", entityLink);
+        } else {
+          // Navigate directly
+          window.open(entityLink, "_blank");
+        }
+      },
+      error: function () {
+        console.error("Error checking lesson password");
+      },
+    });
+  });
+
+  // Handle class password submission
+  $("#submitClassPassword").on("click", function () {
+    const classId = $("#classPasswordModal").data("class-id");
+    const password = $("#classPasswordInput").val();
+
+    if (!password) {
+      $("#classPasswordError").text("Vui lòng nhập mật khẩu").show();
+      return;
+    }
+
+    $.ajax({
+      url:
+        schoolManagementAjax.apiUrl +
+        "school-management/v1/validate-class-password",
+      method: "POST",
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader("X-WP-Nonce", schoolManagementAjax.nonce);
+      },
+      data: {
+        class_id: classId,
+        password: password,
+      },
+      success: function (data) {
+        if (data.valid) {
+          $("#classPasswordModal").modal("hide");
+          $("#classPasswordInput").val("");
+          $("#classPasswordError").hide();
+          loadEntities(classId);
+          $("#entity-container").show();
+        } else {
+          $("#classPasswordError").text("Mật khẩu không đúng").show();
+        }
+      },
+      error: function () {
+        $("#classPasswordError").text("Có lỗi xảy ra. Vui lòng thử lại").show();
+      },
+    });
+  });
+
+  // Handle lesson password submission
+  $("#submitLessonPassword").on("click", function () {
+    const entityId = $("#lessonPasswordModal").data("entity-id");
+    const entityLink = $("#lessonPasswordModal").data("entity-link");
+    const password = $("#lessonPasswordInput").val();
+
+    if (!password) {
+      $("#lessonPasswordError").text("Vui lòng nhập mật khẩu").show();
+      return;
+    }
+
+    $.ajax({
+      url:
+        schoolManagementAjax.apiUrl +
+        "school-management/v1/validate-lesson-password",
+      method: "POST",
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader("X-WP-Nonce", schoolManagementAjax.nonce);
+      },
+      data: {
+        entity_id: entityId,
+        password: password,
+      },
+      success: function (data) {
+        if (data.valid) {
+          $("#lessonPasswordModal").modal("hide");
+          $("#lessonPasswordInput").val("");
+          $("#lessonPasswordError").hide();
+          window.open(entityLink, "_blank");
+        } else {
+          $("#lessonPasswordError").text("Mật khẩu không đúng").show();
+        }
+      },
+      error: function () {
+        $("#lessonPasswordError")
+          .text("Có lỗi xảy ra. Vui lòng thử lại")
+          .show();
+      },
+    });
+  });
+
+  // Clear error messages when modal is hidden
+  $("#classPasswordModal").on("hidden.bs.modal", function () {
+    $("#classPasswordInput").val("");
+    $("#classPasswordError").hide();
+  });
+
+  $("#lessonPasswordModal").on("hidden.bs.modal", function () {
+    $("#lessonPasswordInput").val("");
+    $("#lessonPasswordError").hide();
+  });
+
+  // Force modals on top when shown
+  $("#classPasswordModal").on("show.bs.modal", function () {
+    setTimeout(() => {
+      forceModalOnTop("#classPasswordModal");
+    }, 50);
+  });
+
+  $("#lessonPasswordModal").on("show.bs.modal", function () {
+    setTimeout(() => {
+      forceModalOnTop("#lessonPasswordModal");
+    }, 50);
+  });
+
+  // Additional fix for when modal is fully shown
+  $("#classPasswordModal").on("shown.bs.modal", function () {
+    forceModalOnTop("#classPasswordModal");
+    // Focus on input to ensure it's interactive
+    $("#classPasswordInput").focus();
+  });
+
+  $("#lessonPasswordModal").on("shown.bs.modal", function () {
+    forceModalOnTop("#lessonPasswordModal");
+    // Focus on input to ensure it's interactive
+    $("#lessonPasswordInput").focus();
+  });
 });

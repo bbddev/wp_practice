@@ -24,17 +24,33 @@ function enqueue_school_management_frontend_scripts()
 {
     wp_enqueue_script('jquery');
 
+    // Enqueue Bootstrap CSS và JS cho modal
+    wp_enqueue_style(
+        'bootstrap-css',
+        'https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css',
+        array(),
+        '4.6.0'
+    );
+
+    wp_enqueue_script(
+        'bootstrap-js',
+        'https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js',
+        array('jquery'),
+        '4.6.0',
+        true
+    );
+
     wp_enqueue_style(
         'school-management-css',
         SCHOOLPLUGIN_URL . '/assets/style/school-management.css',
-        array(),
+        array('bootstrap-css'),
         '1.0.0'
     );
 
     wp_enqueue_script(
         'school-management-js',
         SCHOOLPLUGIN_URL . '/assets/js/school-management.js',
-        array('jquery'),
+        array('jquery', 'bootstrap-js'),
         '1.0.0',
         true
     );
