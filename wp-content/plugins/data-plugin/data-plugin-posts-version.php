@@ -98,6 +98,102 @@ function bb_data_plugin_start_session()
     }
 }
 
+// Handle JSON export using wp_posts
+add_action('wp_ajax_export_json_data_posts', 'bb_data_plugin_export_json_posts');
+function bb_data_plugin_export_json_posts()
+{
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['bb_data_nonce'], 'bb_data_export_json')) {
+        wp_die('Security check failed');
+    }
+
+    // Get all data from the three post types
+    $schools = get_posts(array(
+        'post_type' => 'school',
+        'numberposts' => -1,
+        'post_status' => 'publish'
+    ));
+
+    $classes = get_posts(array(
+        'post_type' => 'class',
+        'numberposts' => -1,
+        'post_status' => 'publish'
+    ));
+
+    $entities = get_posts(array(
+        'post_type' => 'entity',
+        'numberposts' => -1,
+        'post_status' => 'publish'
+    ));
+
+    // Build structured data array
+    $export_data = array(
+        'export_info' => array(
+            'export_date' => current_time('Y-m-d H:i:s'),
+            'plugin_version' => '1.0',
+            'total_records' => count($schools) + count($classes) + count($entities)
+        ),
+        'schools' => array(),
+        'classes' => array(),
+        'entities' => array()
+    );
+
+    // Process schools
+    foreach ($schools as $school) {
+        $export_data['schools'][] = array(
+            'id' => $school->ID,
+            'title' => $school->post_title,
+            'type' => 'school',
+            'created_date' => $school->post_date
+        );
+    }
+
+    // Process classes
+    foreach ($classes as $class) {
+        $password = get_post_meta($class->ID, 'class_password', true);
+        $parent = get_post_meta($class->ID, 'Thuộc Trường', true);
+
+        $export_data['classes'][] = array(
+            'id' => $class->ID,
+            'title' => $class->post_title,
+            'type' => 'class',
+            'password' => $password,
+            'parent_school' => $parent,
+            'created_date' => $class->post_date
+        );
+    }
+
+    // Process entities
+    foreach ($entities as $entity) {
+        $password = get_post_meta($entity->ID, 'lesson_password', true);
+        $parent = get_post_meta($entity->ID, 'Thuộc lớp', true);
+        $link = get_post_meta($entity->ID, 'Link khi click', true);
+        $image_url = get_post_meta($entity->ID, 'Hình', true);
+
+        $export_data['entities'][] = array(
+            'id' => $entity->ID,
+            'title' => $entity->post_title,
+            'type' => 'entity',
+            'password' => $password,
+            'parent_class' => $parent,
+            'link' => $link,
+            'image_url' => $image_url,
+            'created_date' => $entity->post_date
+        );
+    }
+
+    // Set headers for JSON download
+    $filename = 'exported-data-' . date('Y-m-d-H-i-s') . '.json';
+    header('Content-Type: application/json; charset=utf-8');
+    header('Content-Disposition: attachment; filename=' . $filename);
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    // Output JSON data
+    echo wp_json_encode($export_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
 // Handle CSV export using wp_posts
 add_action('wp_ajax_export_csv_data_posts', 'bb_data_plugin_export_csv_posts');
 function bb_data_plugin_export_csv_posts()
@@ -438,6 +534,9 @@ function bb_data_plugin_posts_admin_page()
                         <button type="button" class="btn btn-success" onclick="exportData();" style="margin-right: 5px;">
                             Export CSV
                         </button>
+                        <button type="button" class="btn btn-info" onclick="exportJsonData();" style="margin-right: 5px;">
+                            Export JSON
+                        </button>
                     </div>
                 </div>
                 <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
@@ -503,6 +602,45 @@ function bb_data_plugin_posts_admin_page()
                     actionField.type = 'hidden';
                     actionField.name = 'action';
                     actionField.value = 'export_csv_data_posts';
+                    form.appendChild(actionField);
+
+                    // Add form to body and submit
+                    document.body.appendChild(form);
+                    form.submit();
+
+                    // Reset button after a short delay
+                    setTimeout(function () {
+                        exportBtn.innerHTML = originalText;
+                        exportBtn.disabled = false;
+                        document.body.removeChild(form);
+                    }, 2000);
+                }
+
+                function exportJsonData() {
+                    // Show loading message
+                    var exportBtn = event.target;
+                    var originalText = exportBtn.innerHTML;
+                    exportBtn.innerHTML = 'Exporting...';
+                    exportBtn.disabled = true;
+
+                    // Create a form to submit export request
+                    var form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '<?php echo esc_url(admin_url('admin-ajax.php')); ?>';
+                    form.style.display = 'none';
+
+                    // Add nonce field
+                    var nonceField = document.createElement('input');
+                    nonceField.type = 'hidden';
+                    nonceField.name = 'bb_data_nonce';
+                    nonceField.value = '<?php echo wp_create_nonce('bb_data_export_json'); ?>';
+                    form.appendChild(nonceField);
+
+                    // Add action field
+                    var actionField = document.createElement('input');
+                    actionField.type = 'hidden';
+                    actionField.name = 'action';
+                    actionField.value = 'export_json_data_posts';
                     form.appendChild(actionField);
 
                     // Add form to body and submit
