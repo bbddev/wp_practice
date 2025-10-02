@@ -83,26 +83,7 @@ function bb_data_plugin_posts_admin_page()
                         <a href="javascript:void(0);" class="button" onclick="exportDataJson()">Export JSON</a>
                     </div>
                 </div>
-                <div id="csvForm" style="display:block;">
-                    <!-- Progress bar container (hidden by default) -->
-                    <div id="progressContainer" style="display: none; margin-bottom: 20px;">
-                        <div style="margin-bottom: 10px;">
-                            <strong id="progressText">Đang chuẩn bị import...</strong>
-                        </div>
-                        <div
-                            style="width: 100%; background-color: #e0e0e0; border-radius: 5px; height: 25px; position: relative;">
-                            <div id="progressBar"
-                                style="width: 0%; background-color: #4CAF50; height: 100%; border-radius: 5px; transition: width 0.3s ease;">
-                            </div>
-                            <div id="progressPercent"
-                                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; color: #333;">
-                                0%</div>
-                        </div>
-                        <!-- <div id="progressDetails" style="margin-top: 10px; font-size: 12px; color: #666;">
-                            <span id="recordsProcessed">Records: 0/0</span>
-                        </div> -->
-                    </div>
-
+                <div id="csvForm" style="display:block;">                  
                     <form id="csvImportForm" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
                         enctype="multipart/form-data">
                         <input type="hidden" name="action" value="import_csv_data_posts">
@@ -116,12 +97,27 @@ function bb_data_plugin_posts_admin_page()
                         </div>
 
                         <div class="form-group" style="margin-bottom: 15px; margin-top: 30px;">
-                            <input type="button" id="importCsvBtn" class="btn btn-primary" value="Import CSV (Batch Mode)"
+                            <input type="button" id="importCsvBtn" class="btn btn-primary" value="Import CSV"
                                 style="padding: 10px 20px;">
-                            <input type="submit" name="importSubmit" class="btn btn-secondary" value="Import CSV (Legacy)"
-                                style="padding: 10px 20px; margin-left: 10px;">
+                            <!-- <input type="submit" name="importSubmit" class="btn btn-secondary" value="Import CSV (Legacy)"
+                                style="padding: 10px 20px; margin-left: 10px;"> -->
                         </div>
                     </form>
+                    <!-- Progress bar container (hidden by default) -->
+                       <div id="progressContainer" style="display: none; margin-bottom: 20px;">                        
+                        <div
+                            style="width: 100%; background-color: #e0e0e0; border-radius: 5px; height: 25px; position: relative;">
+                            <div id="progressBar"
+                                style="width: 0%; background-color: #4CAF50; height: 100%; border-radius: 5px; transition: width 0.3s ease;">
+                            </div>
+                            <div id="progressPercent"
+                                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; color: #333;">
+                                0%</div>
+                        </div> 
+                        <div style="margin-top: 10px;">
+                            <strong id="progressText">Đang chuẩn bị import...</strong>
+                        </div>                       
+                    </div>
                 </div>
                 <div id="jsonForm" style="display:none;">
                     <!-- JSON file upload form -->
