@@ -38,7 +38,7 @@ function render_class_meta_box($post)
     <p>
         <label for="class_school">Thuộc trường:</label>
         <select id="class_school" name="class_school" style="width: 100%;">
-            <option value="">-- Chọn trường --</option>
+            <option value="">-- Chọn khối học sinh tham gia --</option>
             <?php foreach ($school_list as $school): ?>
                 <option value="<?php echo esc_attr($school->post_title); ?>" 
                     <?php selected($class_school, $school->post_title); ?>>
