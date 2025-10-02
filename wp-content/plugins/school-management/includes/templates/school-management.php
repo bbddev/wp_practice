@@ -1,20 +1,20 @@
 <div id="school-management-container">
     <div id="select-school">
-        <label for="school-dropdown">Chọn khối học sinh tham gia:</label>
-        <select id="school-dropdown">
+        <label for="school-dropdown" style="text-align: center;">Chọn khối học sinh tham gia:</label>
+        <select id="school-dropdown" style="margin: auto;">
             <option value="">-- Chọn khối học sinh tham gia --</option>
         </select>
     </div>
 
     <div id="select-class" style="display: none;">
-        <label for="class-dropdown">Chọn lớp:</label>
-        <select id="class-dropdown">
+        <label for="class-dropdown" style="text-align: center;">Chọn lớp:</label>
+        <select id="class-dropdown" style="margin: auto;">
             <option value="">-- Chọn lớp --</option>
         </select>
     </div>
 
     <div id="entity-container" style="display: none;">
-        <h3>Danh sách bài học:</h3>
+        <h3 style="text-align: center;">Danh sách tham gia:</h3>
         <div id="entity-grid" class="entity-grid">
             <!-- AJAX -->
         </div>
