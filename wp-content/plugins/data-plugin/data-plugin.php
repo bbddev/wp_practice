@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: BB - Data Plugin
- * Description: A simple data plugin using WordPress posts table.
- * Version: 1.0
+ * Plugin Name: Data Plugin
+ * Description: A WordPress plugin to manage custom data entries with CSV and JSON import/export functionality.
+ * Version: 2.0
  * Author: Binh Vo
  */
 

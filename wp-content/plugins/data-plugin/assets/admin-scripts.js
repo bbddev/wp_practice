@@ -4,9 +4,6 @@
 function formToggle(ID) {
   var jsonForm = document.getElementById("jsonForm");
   var csvForm = document.getElementById("csvForm");
-  var importCsvBtn = document.getElementById("importCsvBtn");
-  var importJsonBtn = document.getElementById("importJsonBtn");
-
 
 
   // Ẩn tất cả forms trước
@@ -25,10 +22,10 @@ function formToggle(ID) {
  */
 function downloadSample() {
   var csvContent = "type,title,password,parent,link,image_url\n";
-  csvContent += 'school,"Trường THPT ABC","","","",""\n';
-  csvContent += 'class,"Lớp 10A1","password123","Trường THPT ABC","",""\n';
+  csvContent += 'school,"Khối 6","","","",""\n';
+  csvContent += 'class,"Lớp 6.1","password123","Khối 6","",""\n';
   csvContent +=
-    'entity,"Bài học 1","lesson123","Lớp 10A1","https://example.com","https://example.com/image.jpg"\n';
+    'entity,"Hình 1","lesson123","Lớp 6.1","https://example.com","https://example.com/image.jpg"\n';
 
   var blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   var link = document.createElement("a");
@@ -54,7 +51,7 @@ function downloadJsonSample() {
     schools: [
       {
         id: 1,
-        title: "Trường THPT ABC",
+        title: "Khối 6",
         type: "school",
         created_date: "2024-01-01 10:00:00",
       },
@@ -62,20 +59,20 @@ function downloadJsonSample() {
     classes: [
       {
         id: 2,
-        title: "Lớp 10A1",
+        title: "Lớp 6.1",
         type: "class",
         password: "password123",
-        parent_school: "Trường THPT ABC",
+        parent_school: "Khối 6",
         created_date: "2024-01-01 10:05:00",
       },
     ],
     entities: [
       {
         id: 3,
-        title: "Bài học 1",
+        title: "Hình 1",
         type: "entity",
         password: "lesson123",
-        parent_class: "Lớp 10A1",
+        parent_class: "Lớp 6.1",
         link: "https://example.com",
         image_url: "https://example.com/image.jpg",
         created_date: "2024-01-01 10:10:00",
