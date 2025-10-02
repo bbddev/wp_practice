@@ -1,8 +1,8 @@
 <div id="school-management-container">
     <div id="select-school">
-        <label for="school-dropdown">Chọn trường:</label>
+        <label for="school-dropdown">Chọn khối học sinh tham gia:</label>
         <select id="school-dropdown">
-            <option value="">-- Chọn trường --</option>
+            <option value="">-- Chọn khối học sinh tham gia --</option>
         </select>
     </div>
 

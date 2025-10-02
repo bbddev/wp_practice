@@ -1,7 +1,6 @@
 window.SchoolManagement = window.SchoolManagement || {};
 
 window.SchoolManagement.SchoolClass = {
-
   init: function ($) {
     this.$ = $;
     this.bindEvents();
@@ -84,7 +83,9 @@ window.SchoolManagement.SchoolClass = {
   populateSchoolDropdown: function (data) {
     const $ = this.$;
     const $dropdown = $("#school-dropdown");
-    $dropdown.html('<option value="">-- Chọn trường --</option>');
+    $dropdown.html(
+      '<option value="">-- Chọn khối học sinh tham gia --</option>'
+    );
 
     if (data && data.length > 0) {
       // Sort schools naturally by title
