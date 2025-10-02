@@ -1,6 +1,61 @@
 /**
  * Admin JavaScript for BB Data Plugin
  */
+
+/**
+ * Show WordPress-style notice
+ */
+function showNotice(message, type = "info") {
+  // Remove existing notices first
+  var existingNotices = document.querySelectorAll(".bb-notice");
+  existingNotices.forEach(function (notice) {
+    notice.remove();
+  });
+
+  // Create notice element
+  var noticeDiv = document.createElement("div");
+  noticeDiv.className =
+    "notice bb-notice is-dismissible " +
+    (type === "success"
+      ? "updated"
+      : type === "error"
+      ? "error"
+      : type === "warning"
+      ? "notice-warning"
+      : "notice-info");
+
+  noticeDiv.innerHTML =
+    "<p>" +
+    message +
+    "</p>" +
+    '<button type="button" class="notice-dismiss">' +
+    '<span class="screen-reader-text">Dismiss this notice.</span>' +
+    "</button>";
+
+  // Insert after the h1 title
+  var title = document.querySelector(".wrap h1");
+  if (title) {
+    title.parentNode.insertBefore(noticeDiv, title.nextSibling);
+  }
+
+  // Add dismiss functionality
+  var dismissBtn = noticeDiv.querySelector(".notice-dismiss");
+  if (dismissBtn) {
+    dismissBtn.addEventListener("click", function () {
+      noticeDiv.remove();
+    });
+  }
+
+  // Auto-dismiss success messages after 5 seconds
+  if (type === "success") {
+    setTimeout(function () {
+      if (noticeDiv.parentNode) {
+        noticeDiv.remove();
+      }
+    }, 5000);
+  }
+}
+
 function formToggle(ID) {
   var jsonForm = document.getElementById("jsonForm");
   var csvForm = document.getElementById("csvForm");
@@ -156,7 +211,7 @@ function validateCsvFile(input) {
     var fileExtension = fileName.split(".").pop().toLowerCase();
 
     if (fileExtension !== "csv") {
-      alert("Please select a valid CSV file.");
+      showNotice("Please select a valid CSV file.", "error");
       input.value = "";
       return false;
     }
@@ -174,7 +229,7 @@ function validateJsonFile(input) {
     var fileExtension = fileName.split(".").pop().toLowerCase();
 
     if (fileExtension !== "json") {
-      alert("Please select a valid JSON file.");
+      showNotice("Please select a valid JSON file.", "error");
       input.value = "";
       return false;
     }
@@ -188,7 +243,10 @@ function validateJsonFile(input) {
 function startBatchImport() {
   // Debug: Check if bb_data_ajax is available
   if (typeof bb_data_ajax === "undefined") {
-    alert("Error: bb_data_ajax is not defined. Please refresh the page.");
+    showNotice(
+      "Error: bb_data_ajax is not defined. Please refresh the page.",
+      "error"
+    );
     return;
   }
 
@@ -196,7 +254,7 @@ function startBatchImport() {
   var file = fileInput.files[0];
 
   if (!file) {
-    alert("Please select a CSV file first.");
+    showNotice("Please select a CSV file first.", "warning");
     return;
   }
 
@@ -267,7 +325,7 @@ function processBatches(sessionKey, totalRecords, totalBatches, batchSize) {
   function processSingleBatch() {
     updateProgress(
       Math.round((currentBatch / totalBatches) * 100),
-      `Đang xử lý batch ${currentBatch + 1}/${totalBatches}...`,
+      `Đã xử lý ${totalProcessed}/${totalRecords} records...`,
 
       currentBatch + 1,
       totalBatches,
@@ -386,17 +444,30 @@ function completeImport(counters) {
     `Import hoàn tất! Tổng cộng: ${counters.imported} dòng đã import thành công ` +
     `(Tạo mới: ${counters.created}, Cập nhật: ${counters.updated}, Bỏ qua: ${counters.skipped}).`;
 
-  alert(message);
+  showNotice(message, "success");
 
   // Hide progress after 3 seconds
   setTimeout(function () {
     document.getElementById("progressContainer").style.display = "none";
   }, 3000);
 
-  // Refresh the page to show updated data
+  // Add view links to the success message
+  setTimeout(function () {
+    var successNotice = document.querySelector(".bb-notice.updated p");
+    if (successNotice) {
+      successNotice.innerHTML =
+        message +
+        "<br><br>" +
+        '<a href="edit.php?post_type=entity" style="margin-right: 10px;">View Lesson List</a> | ' +
+        '<a href="edit.php?post_type=class" style="margin-right: 10px;">View Class List</a> | ' +
+        '<a href="edit.php?post_type=school">View School List</a>';
+    }
+  }, 500);
+
+  // Refresh the page to show updated data after longer delay to show notice
   setTimeout(function () {
     window.location.reload();
-  }, 3500);
+  }, 8000);
 }
 
 /**
@@ -408,7 +479,7 @@ function handleImportError(message) {
   importBtn.value = "Import CSV (Batch Mode)";
 
   document.getElementById("progressContainer").style.display = "none";
-  alert("Import error: " + message);
+  showNotice("Import error: " + message, "error");
 }
 
 /**

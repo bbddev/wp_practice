@@ -56,7 +56,7 @@ function bb_data_plugin_admin_assets($hook)
         'bb-data-admin-js',
         BB_DATA_PLUGIN_URL . 'assets/admin-scripts.js',
         array('jquery'),
-        '2.1',
+        '2.2',
         true
     );
 
