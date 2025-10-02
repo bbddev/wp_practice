@@ -271,7 +271,7 @@ function startBatchImport() {
   importBtn.value = "Importing...";
 
   // Reset progress
-  updateProgress(0, "Đang khởi tạo batch import...", 0, 0, 0, 0, 0);
+  updateProgress(0, "Đang khởi tạo import...", 0, 0);
 
   // Create FormData for file upload
   var formData = new FormData();
@@ -319,16 +319,13 @@ function startBatchImport() {
 function processBatches(sessionKey, totalRecords, totalBatches, batchSize) {
   var currentBatch = 0;
   var totalProcessed = 0;
-  var totalSuccess = 0;
-  var totalErrors = 0;
 
   function processSingleBatch() {
     updateProgress(
       Math.round((currentBatch / totalBatches) * 100),
-      `Đã xử lý ${totalProcessed}/${totalRecords} records...`,
+      // `Đang xử lý batch ${currentBatch + 1}/${totalBatches}...`,
+              `Đã xử lý ${totalProcessed}/${totalRecords} records...`,
 
-      currentBatch + 1,
-      totalBatches,
       totalProcessed,
       totalRecords
     );
@@ -352,18 +349,12 @@ function processBatches(sessionKey, totalRecords, totalBatches, batchSize) {
 
             // Update counters from response
             var counters = response.counters;
-            totalSuccess = counters.created + counters.updated;
-            totalErrors = counters.skipped;
 
             updateProgress(
               response.progress_percent,
               `Đã xử lý ${totalProcessed}/${totalRecords} records...`,
-              currentBatch,
-              totalBatches,
               totalProcessed,
-              totalRecords,
-              totalSuccess,
-              totalErrors
+              totalRecords
             );
 
             if (response.is_complete) {
@@ -400,40 +391,24 @@ function processBatches(sessionKey, totalRecords, totalBatches, batchSize) {
 /**
  * Update progress display
  */
-function updateProgress(
-  percent,
-  text,
-  currentBatch,
-  totalBatches,
-  processed,
-  total,
-  success,
-  errors
-) {
+function updateProgress(percent, text, processed, total) {
   var progressBar = document.getElementById("progressBar");
   var progressPercent = document.getElementById("progressPercent");
   var progressText = document.getElementById("progressText");
-  var batchInfo = document.getElementById("currentBatch");
   var recordsInfo = document.getElementById("recordsProcessed");
-  var successInfo = document.getElementById("successCount");
-  var errorInfo = document.getElementById("errorCount");
 
   if (progressBar) progressBar.style.width = percent + "%";
   if (progressPercent) progressPercent.textContent = Math.round(percent) + "%";
   if (progressText) progressText.textContent = text;
-  if (batchInfo)
-    batchInfo.textContent = "Batch: " + currentBatch + "/" + totalBatches;
   if (recordsInfo)
     recordsInfo.textContent = "Records: " + processed + "/" + total;
-  if (successInfo) successInfo.textContent = "Success: " + (success || 0);
-  if (errorInfo) errorInfo.textContent = "Errors: " + (errors || 0);
 }
 
 /**
  * Complete import process
  */
 function completeImport(counters) {
-  updateProgress(100, "Import hoàn tất!", 0, 0, 0, 0, 0, 0);
+  updateProgress(100, "Import hoàn tất!", 0, 0);
 
   var importBtn = document.getElementById("importCsvBtn");
   importBtn.disabled = false;

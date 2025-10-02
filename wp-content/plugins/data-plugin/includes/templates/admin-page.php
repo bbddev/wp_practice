@@ -99,10 +99,7 @@ function bb_data_plugin_posts_admin_page()
                                 0%</div>
                         </div>
                         <div id="progressDetails" style="margin-top: 10px; font-size: 12px; color: #666;">
-                            <span id="currentBatch">Batch: 0/0</span> |
-                            <span id="recordsProcessed">Records: 0/0</span> |
-                            <span id="successCount">Success: 0</span> |
-                            <span id="errorCount">Errors: 0</span>
+                            <span id="recordsProcessed">Records: 0/0</span>
                         </div>
                     </div>
 
