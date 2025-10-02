@@ -48,22 +48,24 @@ function bb_data_plugin_admin_assets($hook)
         'bb-data-admin-css',
         BB_DATA_PLUGIN_URL . 'assets/admin-styles.css',
         array(),
-        '1.0'
+        '2.0'
     );
 
     // Enqueue JavaScript
     wp_enqueue_script(
         'bb-data-admin-js',
         BB_DATA_PLUGIN_URL . 'assets/admin-scripts.js',
-        array(),
-        '1.0',
+        array('jquery'),
+        '2.1',
         true
     );
 
     // Localize script for AJAX
     wp_localize_script('bb-data-admin-js', 'bb_data_ajax', array(
         'export_nonce' => wp_create_nonce('bb_data_export'),
-        'export_json_nonce' => wp_create_nonce('bb_data_export_json')
+        'export_json_nonce' => wp_create_nonce('bb_data_export_json'),
+        'batch_import_nonce' => wp_create_nonce('bb_data_batch_import'),
+        'ajax_url' => admin_url('admin-ajax.php')
     ));
 }
 add_action('admin_enqueue_scripts', 'bb_data_plugin_admin_assets');

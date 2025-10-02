@@ -72,6 +72,142 @@ function bb_data_plugin_import_csv_posts()
 add_action('wp_ajax_import_csv_data_posts', 'bb_data_plugin_import_csv_posts');
 
 /**
+ * Handle batch CSV import - Initialize
+ */
+function bb_data_plugin_init_batch_import()
+{
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['bb_data_nonce'], 'bb_data_batch_import')) {
+        wp_die(json_encode(['status' => 'error', 'message' => 'Security check failed']));
+    }
+
+    // Validate file upload
+    if (empty($_FILES['file']['name'])) {
+        wp_die(json_encode(['status' => 'error', 'message' => 'No file uploaded']));
+    }
+
+    $csvMimes = array(
+        'text/x-comma-separated-values',
+        'text/comma-separated-values',
+        'application/octet-stream',
+        'application/vnd.ms-excel',
+        'application/x-csv',
+        'text/x-csv',
+        'text/csv',
+        'application/csv',
+        'application/excel',
+        'application/vnd.msexcel'
+    );
+
+    if (!in_array($_FILES['file']['type'], $csvMimes)) {
+        wp_die(json_encode(['status' => 'error', 'message' => 'Please select a valid CSV file.']));
+    }
+
+    // Read and parse CSV file
+    $csvFile = fopen($_FILES['file']['tmp_name'], 'r');
+    $headers = fgetcsv($csvFile); // Skip header line
+
+    $csvData = array();
+    $lineNumber = 1; // Start from 1 since we skip header
+
+    while (($line = fgetcsv($csvFile)) !== FALSE) {
+        $csvData[] = array(
+            'line_number' => $lineNumber++,
+            'data' => $line
+        );
+    }
+    fclose($csvFile);
+
+    $totalRecords = count($csvData);
+    // Dynamic batch size based on total records
+    $batchSize = $totalRecords > 1000 ? 25 : ($totalRecords > 500 ? 50 : 100);
+    $totalBatches = ceil($totalRecords / $batchSize);
+
+    // Store data in session for batch processing
+    $sessionKey = 'bb_batch_import_' . uniqid();
+    $_SESSION[$sessionKey] = array(
+        'csv_data' => $csvData,
+        'total_records' => $totalRecords,
+        'batch_size' => $batchSize,
+        'total_batches' => $totalBatches,
+        'current_batch' => 0,
+        'processed_records' => 0,
+        'counters' => array(
+            'imported' => 0,
+            'updated' => 0,
+            'created' => 0,
+            'skipped' => 0
+        )
+    );
+
+    wp_die(json_encode([
+        'status' => 'success',
+        'session_key' => $sessionKey,
+        'total_records' => $totalRecords,
+        'total_batches' => $totalBatches,
+        'batch_size' => $batchSize
+    ]));
+}
+add_action('wp_ajax_init_batch_csv_import', 'bb_data_plugin_init_batch_import');
+
+/**
+ * Handle batch CSV import - Process single batch
+ */
+function bb_data_plugin_process_batch()
+{
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['bb_data_nonce'], 'bb_data_batch_import')) {
+        wp_die(json_encode(['status' => 'error', 'message' => 'Security check failed']));
+    }
+
+    $sessionKey = sanitize_text_field($_POST['session_key']);
+    $batchNumber = intval($_POST['batch_number']);
+
+    if (!isset($_SESSION[$sessionKey])) {
+        wp_die(json_encode(['status' => 'error', 'message' => 'Session expired. Please restart import.']));
+    }
+
+    $sessionData = $_SESSION[$sessionKey];
+    $csvData = $sessionData['csv_data'];
+    $batchSize = $sessionData['batch_size'];
+    $counters = $sessionData['counters'];
+
+    // Calculate batch range
+    $startIndex = $batchNumber * $batchSize;
+    $endIndex = min($startIndex + $batchSize, count($csvData));
+
+    // Process batch
+    for ($i = $startIndex; $i < $endIndex; $i++) {
+        if (isset($csvData[$i])) {
+            bb_data_process_csv_line($csvData[$i]['data'], $counters);
+        }
+    }
+
+    // Update session data
+    $_SESSION[$sessionKey]['current_batch'] = $batchNumber + 1;
+    $_SESSION[$sessionKey]['processed_records'] = $endIndex;
+    $_SESSION[$sessionKey]['counters'] = $counters;
+
+    $isComplete = $endIndex >= count($csvData);
+
+    if ($isComplete) {
+        // Clean up session data
+        unset($_SESSION[$sessionKey]);
+    }
+
+    wp_die(json_encode([
+        'status' => 'success',
+        'batch_number' => $batchNumber + 1,
+        'processed_records' => $endIndex,
+        'total_records' => count($csvData),
+        'counters' => $counters,
+        'is_complete' => $isComplete,
+        'progress_percent' => round(($endIndex / count($csvData)) * 100, 2)
+    ]));
+}
+add_action('wp_ajax_process_batch_csv_import', 'bb_data_plugin_process_batch');
+
+/**
  * Get posts by type
  */
 function bb_data_get_posts_by_type($post_type)

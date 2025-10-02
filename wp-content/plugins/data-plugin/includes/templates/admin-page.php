@@ -38,27 +38,20 @@ function bb_data_plugin_posts_admin_page()
         unset($_SESSION['response']);
     }
 
-    // Include inline CSS
-    echo '<link rel="stylesheet" href="' . BB_DATA_PLUGIN_URL . 'assets/admin-styles.css?v=1.0">';
-
-    // Include inline JavaScript
-    echo '<script src="' . BB_DATA_PLUGIN_URL . 'assets/admin-scripts.js?v=1.0"></script>';
-    echo '<script>var bb_data_ajax = {
-        export_nonce: "' . wp_create_nonce('bb_data_export') . '",
-        export_json_nonce: "' . wp_create_nonce('bb_data_export_json') . '"
-    };</script>';
+    // Assets are now properly enqueued via wp_enqueue_scripts in main plugin file
     ?>
     <div class="wrap">
         <h1>Import Data</h1>
 
         <?php if (!empty($statusMsg)) { ?>
-            <div class="alert alert-<?php echo esc_attr($status); ?>" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
+            <div class="alert alert-<?php echo esc_attr($status); ?>"
+                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
                 <div class="status-message">
                     <?php echo esc_html($statusMsg); ?>
                 </div>
                 <div class="view-links" style="white-space: nowrap;">
-                    <a href="edit.php?post_type=entity" style="font-style: italic;">View Lesson List</a>, 
-                    <a href="edit.php?post_type=class" style="font-style: italic;">View Class List</a>, 
+                    <a href="edit.php?post_type=entity" style="font-style: italic;">View Lesson List</a>,
+                    <a href="edit.php?post_type=class" style="font-style: italic;">View Class List</a>,
                     <a href="edit.php?post_type=school" style="font-style: italic;">View School List</a>
                 </div>
             </div>
@@ -75,7 +68,7 @@ function bb_data_plugin_posts_admin_page()
                     <!-- Left side - Import buttons -->
                     <div style="display: flex; gap: 10px;">
                         <a href="javascript:void(0);" class="button-primary" onclick="formToggle('csvForm')"
-                            id="importCsvBtn">Import CSV</a>
+                            id="toggleCsvBtn">Import CSV</a>
                         <a href="javascript:void(0);" class="button-secondary" onclick="formToggle('jsonForm')"
                             id="importJsonBtn">Import JSON</a>
                     </div>
@@ -91,7 +84,29 @@ function bb_data_plugin_posts_admin_page()
                     </div>
                 </div>
                 <div id="csvForm" style="display:block;">
-                    <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
+                    <!-- Progress bar container (hidden by default) -->
+                    <div id="progressContainer" style="display: none; margin-bottom: 20px;">
+                        <div style="margin-bottom: 10px;">
+                            <strong id="progressText">Đang chuẩn bị import...</strong>
+                        </div>
+                        <div
+                            style="width: 100%; background-color: #e0e0e0; border-radius: 5px; height: 25px; position: relative;">
+                            <div id="progressBar"
+                                style="width: 0%; background-color: #4CAF50; height: 100%; border-radius: 5px; transition: width 0.3s ease;">
+                            </div>
+                            <div id="progressPercent"
+                                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; color: #333;">
+                                0%</div>
+                        </div>
+                        <div id="progressDetails" style="margin-top: 10px; font-size: 12px; color: #666;">
+                            <span id="currentBatch">Batch: 0/0</span> |
+                            <span id="recordsProcessed">Records: 0/0</span> |
+                            <span id="successCount">Success: 0</span> |
+                            <span id="errorCount">Errors: 0</span>
+                        </div>
+                    </div>
+
+                    <form id="csvImportForm" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
                         enctype="multipart/form-data">
                         <input type="hidden" name="action" value="import_csv_data_posts">
                         <?php wp_nonce_field('bb_data_import', 'bb_data_nonce'); ?>
@@ -104,8 +119,10 @@ function bb_data_plugin_posts_admin_page()
                         </div>
 
                         <div class="form-group" style="margin-bottom: 15px; margin-top: 30px;">
-                            <input type="submit" name="importSubmit" class="btn btn-primary" value="Import CSV"
+                            <input type="button" id="importCsvBtn" class="btn btn-primary" value="Import CSV (Batch Mode)"
                                 style="padding: 10px 20px;">
+                            <input type="submit" name="importSubmit" class="btn btn-secondary" value="Import CSV (Legacy)"
+                                style="padding: 10px 20px; margin-left: 10px;">
                         </div>
                     </form>
                 </div>
