@@ -1,10 +1,64 @@
 /**
  * Admin JavaScript for BB Data Plugin
  */
+
+/**
+ * Show WordPress-style notice
+ */
+function showNotice(message, type = "info") {
+  // Remove existing notices first
+  var existingNotices = document.querySelectorAll(".bb-notice");
+  existingNotices.forEach(function (notice) {
+    notice.remove();
+  });
+
+  // Create notice element
+  var noticeDiv = document.createElement("div");
+  noticeDiv.className =
+    "notice bb-notice is-dismissible " +
+    (type === "success"
+      ? "updated"
+      : type === "error"
+      ? "error"
+      : type === "warning"
+      ? "notice-warning"
+      : "notice-info");
+
+  noticeDiv.innerHTML =
+    "<p>" +
+    message +
+    "</p>" +
+    '<button type="button" class="notice-dismiss">' +
+    '<span class="screen-reader-text">Dismiss this notice.</span>' +
+    "</button>";
+
+  // Insert after the h1 title
+  var title = document.querySelector(".wrap h1");
+  if (title) {
+    title.parentNode.insertBefore(noticeDiv, title.nextSibling);
+  }
+
+  // Add dismiss functionality
+  var dismissBtn = noticeDiv.querySelector(".notice-dismiss");
+  if (dismissBtn) {
+    dismissBtn.addEventListener("click", function () {
+      noticeDiv.remove();
+    });
+  }
+
+  // Auto-dismiss success messages after 5 seconds
+  if (type === "success") {
+    setTimeout(function () {
+      if (noticeDiv.parentNode) {
+        noticeDiv.remove();
+      }
+    }, 5000);
+  }
+}
+
 function formToggle(ID) {
   var jsonForm = document.getElementById("jsonForm");
   var csvForm = document.getElementById("csvForm");
-
 
   // Ẩn tất cả forms trước
   csvForm.style.display = "none";
@@ -157,7 +211,7 @@ function validateCsvFile(input) {
     var fileExtension = fileName.split(".").pop().toLowerCase();
 
     if (fileExtension !== "csv") {
-      alert("Please select a valid CSV file.");
+      showNotice("Please select a valid CSV file.", "error");
       input.value = "";
       return false;
     }
@@ -175,12 +229,232 @@ function validateJsonFile(input) {
     var fileExtension = fileName.split(".").pop().toLowerCase();
 
     if (fileExtension !== "json") {
-      alert("Please select a valid JSON file.");
+      showNotice("Please select a valid JSON file.", "error");
       input.value = "";
       return false;
     }
   }
   return true;
+}
+
+/**
+ * Start batch CSV import
+ */
+function startBatchImport() {
+  // Debug: Check if bb_data_ajax is available
+  if (typeof bb_data_ajax === "undefined") {
+    showNotice(
+      "Error: bb_data_ajax is not defined. Please refresh the page.",
+      "error"
+    );
+    return;
+  }
+
+  var fileInput = document.getElementById("file");
+  var file = fileInput.files[0];
+
+  if (!file) {
+    showNotice("Please select a CSV file first.", "warning");
+    return;
+  }
+
+  if (!validateCsvFile(fileInput)) {
+    return;
+  }
+
+  // Show progress container
+  var progressContainer = document.getElementById("progressContainer");
+  var importBtn = document.getElementById("importCsvBtn");
+
+  progressContainer.style.display = "block";
+  importBtn.disabled = true;
+  importBtn.value = "Importing...";
+
+  // Reset progress
+  updateProgress(0, "Đang khởi tạo import...", 0, 0);
+
+  // Create FormData for file upload
+  var formData = new FormData();
+  formData.append("action", "init_batch_csv_import");
+  formData.append("bb_data_nonce", bb_data_ajax.batch_import_nonce);
+  formData.append("file", file);
+
+  // Initialize batch import
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", bb_data_ajax.ajax_url, true);
+
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      try {
+        var response = JSON.parse(xhr.responseText);
+        if (response.status === "success") {
+          // Start processing batches
+          processBatches(
+            response.session_key,
+            response.total_records,
+            response.total_batches,
+            response.batch_size
+          );
+        } else {
+          handleImportError("Initialization failed: " + response.message);
+        }
+      } catch (e) {
+        handleImportError("Invalid server response during initialization");
+      }
+    } else {
+      handleImportError("Server error during initialization: " + xhr.status);
+    }
+  };
+
+  xhr.onerror = function () {
+    handleImportError("Network error during initialization");
+  };
+
+  xhr.send(formData);
+}
+
+/**
+ * Process batches sequentially
+ */
+function processBatches(sessionKey, totalRecords, totalBatches, batchSize) {
+  var currentBatch = 0;
+  var totalProcessed = 0;
+
+  function processSingleBatch() {
+    updateProgress(
+      Math.round((currentBatch / totalBatches) * 100),
+      // `Đang xử lý batch ${currentBatch + 1}/${totalBatches}...`,
+              `Đã xử lý ${totalProcessed}/${totalRecords} records...`,
+
+      totalProcessed,
+      totalRecords
+    );
+
+    var formData = new FormData();
+    formData.append("action", "process_batch_csv_import");
+    formData.append("bb_data_nonce", bb_data_ajax.batch_import_nonce);
+    formData.append("session_key", sessionKey);
+    formData.append("batch_number", currentBatch);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", bb_data_ajax.ajax_url, true);
+
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        try {
+          var response = JSON.parse(xhr.responseText);
+          if (response.status === "success") {
+            currentBatch++;
+            totalProcessed = response.processed_records;
+
+            // Update counters from response
+            var counters = response.counters;
+
+            updateProgress(
+              response.progress_percent,
+              `Đã xử lý ${totalProcessed}/${totalRecords} records...`,
+              totalProcessed,
+              totalRecords
+            );
+
+            if (response.is_complete) {
+              // Import completed
+              completeImport(counters);
+            } else {
+              // Process next batch with a small delay
+              setTimeout(processSingleBatch, 100);
+            }
+          } else {
+            handleImportError("Batch processing failed: " + response.message);
+          }
+        } catch (e) {
+          handleImportError("Invalid server response during batch processing");
+        }
+      } else {
+        handleImportError(
+          "Server error during batch processing: " + xhr.status
+        );
+      }
+    };
+
+    xhr.onerror = function () {
+      handleImportError("Network error during batch processing");
+    };
+
+    xhr.send(formData);
+  }
+
+  // Start processing
+  processSingleBatch();
+}
+
+/**
+ * Update progress display
+ */
+function updateProgress(percent, text, processed, total) {
+  var progressBar = document.getElementById("progressBar");
+  var progressPercent = document.getElementById("progressPercent");
+  var progressText = document.getElementById("progressText");
+  var recordsInfo = document.getElementById("recordsProcessed");
+
+  if (progressBar) progressBar.style.width = percent + "%";
+  if (progressPercent) progressPercent.textContent = Math.round(percent) + "%";
+  if (progressText) progressText.textContent = text;
+  if (recordsInfo)
+    recordsInfo.textContent = "Records: " + processed + "/" + total;
+}
+
+/**
+ * Complete import process
+ */
+function completeImport(counters) {
+  updateProgress(100, "Import hoàn tất!", 0, 0);
+
+  var importBtn = document.getElementById("importCsvBtn");
+  importBtn.disabled = false;
+  importBtn.value = "Import CSV (Batch Mode)";
+
+  // Show success message
+  var message =
+    `Import hoàn tất! Tổng cộng: ${counters.imported} dòng đã import thành công ` +
+    `(Tạo mới: ${counters.created}, Cập nhật: ${counters.updated}, Bỏ qua: ${counters.skipped}).`;
+
+  showNotice(message, "success");
+
+  // Hide progress after 3 seconds
+  setTimeout(function () {
+    document.getElementById("progressContainer").style.display = "none";
+  }, 3000);
+
+  // Add view links to the success message
+  setTimeout(function () {
+    var successNotice = document.querySelector(".bb-notice.updated p");
+    if (successNotice) {
+      successNotice.innerHTML =
+        message +
+        "<br><br>" +
+        '<a href="edit.php?post_type=entity" style="margin-right: 10px;">View Lesson List</a> | ' +
+        '<a href="edit.php?post_type=class" style="margin-right: 10px;">View Class List</a> | ' +
+        '<a href="edit.php?post_type=school">View School List</a>';
+    }
+  }, 500);
+
+  // Refresh the page to show updated data after longer delay to show notice
+  setTimeout(function () {
+    window.location.reload();
+  }, 8000);
+}
+
+/**
+ * Handle import errors
+ */
+function handleImportError(message) {
+  var importBtn = document.getElementById("importCsvBtn");
+  importBtn.disabled = false;
+  importBtn.value = "Import CSV (Batch Mode)";
+
+  document.getElementById("progressContainer").style.display = "none";
+  showNotice("Import error: " + message, "error");
 }
 
 /**
@@ -199,6 +473,14 @@ document.addEventListener("DOMContentLoaded", function () {
   if (jsonFileInput) {
     jsonFileInput.addEventListener("change", function () {
       validateJsonFile(this);
+    });
+  }
+
+  // Add batch import button click handler
+  var batchImportBtn = document.getElementById("importCsvBtn");
+  if (batchImportBtn) {
+    batchImportBtn.addEventListener("click", function () {
+      startBatchImport();
     });
   }
 });
