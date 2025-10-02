@@ -12,6 +12,7 @@
             <option value="">-- Chọn lớp --</option>
         </select>
     </div>
+    <button class="btn btn-secondary" id="backButtonClearEntity" style="display: block; position: relative; left: 50%;">Back</button>
 
     <div id="entity-container" style="display: none;">
         <h3 style="text-align: center;">Danh sách tham gia:</h3>
@@ -22,7 +23,7 @@
             <!-- Pagination will be generated here -->
         </div>
     </div>
-</div>
+</div> 
 
 <!-- Bootstrap Modal cho Class Password -->
 <div class="modal fade" id="classPasswordModal" tabindex="-1" role="dialog" aria-labelledby="classPasswordModalLabel"
