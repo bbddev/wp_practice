@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: BB - Data Plugin
- * Description: A simple data plugin using WordPress posts table.
- * Version: 1.0
+ * Plugin Name: Data Plugin
+ * Description: Thông báo mỗi 10 import
+ * Version: 2.0
  * Author: Binh Vo
  */
 
