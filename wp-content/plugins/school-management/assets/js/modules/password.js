@@ -106,6 +106,8 @@ window.SchoolManagement.Password = {
           window.SchoolManagement.Entity.loadEntities(classId);
           const $ = self.$ || window.SchoolManagement.$ || jQuery;
           $("#entity-container").show();
+          $("#select-school").hide();
+          $("#select-class").hide();
         }
       },
       error: function () {
@@ -175,6 +177,8 @@ window.SchoolManagement.Password = {
           $("#classPasswordError").hide();
           window.SchoolManagement.Entity.loadEntities(classId);
           $("#entity-container").show();
+          $("#select-school").hide();
+          $("#select-class").hide();
         } else {
           $("#classPasswordError").text("Mật khẩu không đúng").show();
           $("#classPasswordInput").val("").focus();

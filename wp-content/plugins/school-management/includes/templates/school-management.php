@@ -12,10 +12,19 @@
             <option value="">-- Chọn lớp --</option>
         </select>
     </div>
-    <button class="btn btn-secondary" id="backButtonClearEntity" style="display: block; position: relative; left: 50%;">Back</button>
 
     <div id="entity-container" style="display: none;">
-        <h3 style="text-align: center;">Danh sách tham gia:</h3>
+        <div class="row d-flex justify-content-between align-items-center mb-3">
+            <div class="col-auto">
+                <button class="btn btn-secondary" onclick="showSchoolSelection()">Back</button>
+            </div>
+            <div class="col text-center">
+                <h3 class="mb-0">Danh sách học sinh tham gia của lớp <strong id="class-title"></strong>:</h3>
+            </div>
+            <div class="col-auto">
+                <!-- Empty column for balance -->
+            </div>
+        </div>
         <div id="entity-grid" class="entity-grid">
             <!-- AJAX -->
         </div>
@@ -23,7 +32,7 @@
             <!-- Pagination will be generated here -->
         </div>
     </div>
-</div> 
+</div>
 
 <!-- Bootstrap Modal cho Class Password -->
 <div class="modal fade" id="classPasswordModal" tabindex="-1" role="dialog" aria-labelledby="classPasswordModalLabel"

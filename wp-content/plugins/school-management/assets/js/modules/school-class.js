@@ -1,10 +1,44 @@
 window.SchoolManagement = window.SchoolManagement || {};
 
+// Global function for HTML onclick compatibility
+function showSchoolSelection() {
+  if (window.SchoolManagement.SchoolClass) {
+    window.SchoolManagement.SchoolClass.showSchoolSelection();
+  }
+}
+
 window.SchoolManagement.SchoolClass = {
   init: function ($) {
     this.$ = $;
     this.bindEvents();
     this.loadSchools();
+  },
+
+  showSchoolSelection: function () {
+    const $ = this.$ || window.SchoolManagement.$ || jQuery;
+
+    // Show school selection
+    $("#select-school").show();
+
+    // Hide other containers
+    $("#select-class").hide();
+    $("#entity-container").hide();
+
+    // Reset dropdowns to default state
+    $("#school-dropdown").val("");
+    $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
+
+    // Clear class title
+    $("#class-title").text("");
+
+    // Clear entity grid and hide pagination
+    $("#entity-grid").empty();
+    $("#pagination-container").hide();
+
+    // Reset entity module state if it exists
+    if (window.SchoolManagement.Entity) {
+      window.SchoolManagement.Entity.reset();
+    }
   },
 
   bindEvents: function () {
@@ -44,12 +78,19 @@ window.SchoolManagement.SchoolClass = {
   handleClassChange: function (classId) {
     const $ = this.$;
     if (classId) {
+      // Get the selected class name and update the title
+      const selectedClassName = $("#class-dropdown option:selected").text();
+      $("#class-title").text(selectedClassName);
+
       // Check if class has password first
       window.SchoolManagement.Password.checkClassPassword(classId);
     } else {
       $("#entity-container").hide();
       $("#entity-grid").empty();
       $("#pagination-container").hide();
+
+      // Clear class title
+      $("#class-title").text("");
 
       // Reset entity module state
       if (window.SchoolManagement.Entity) {
