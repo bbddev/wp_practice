@@ -197,8 +197,13 @@ window.SchoolManagement.Password = {
     const $ = this.$;
     const entityId = $("#lessonPasswordModal").data("entity-id");
     const entityLink = $("#lessonPasswordModal").data("entity-link");
+    const username = $("#usernameInput").val();
     const password = $("#lessonPasswordInput").val();
 
+    if (!username) {
+      $("#usernameError").text("Vui lòng nhập tên đăng nhập").show();
+      return;
+    }
     if (!password) {
       $("#lessonPasswordError").text("Vui lòng nhập mật khẩu").show();
       return;
@@ -211,16 +216,18 @@ window.SchoolManagement.Password = {
       method: "POST",
       data: {
         entity_id: entityId,
+        username: username,
         password: password,
       },
       success: function (data) {
+        // console.log("🚀 ~ data:", data)
         if (data.valid) {
           $("#lessonPasswordModal").modal("hide");
           $("#lessonPasswordInput").val("");
           $("#lessonPasswordError").hide();
           window.open(entityLink, "_blank");
         } else {
-          $("#lessonPasswordError").text("Mật khẩu không đúng").show();
+          $("#lessonPasswordError").text("Username hoặc Mật khẩu không đúng").show();
           $("#lessonPasswordInput").val("").focus();
         }
       },

@@ -16,6 +16,12 @@ function save_entity_meta($post_id)
     if (get_post_type($post_id) !== 'entity') {
         return;
     }
+    if (isset($_POST['entity_username'])) {
+        update_post_meta($post_id, 'Username', sanitize_text_field($_POST['entity_username']));
+    }
+    if (isset($_POST['lesson_password'])) {
+        update_post_meta($post_id, 'lesson_password', sanitize_text_field($_POST['lesson_password']));
+    }
 
     if (isset($_POST['entity_class'])) {
         update_post_meta($post_id, 'Thuộc lớp', sanitize_text_field($_POST['entity_class']));

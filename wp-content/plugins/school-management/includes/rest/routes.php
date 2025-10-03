@@ -249,6 +249,7 @@ function validate_lesson_password($request)
 {
     $entity_id = $request['entity_id'];
     $password = $request['password'];
+    $username = $request['username'];
 
     $entity_post = get_post($entity_id);
 
@@ -257,8 +258,9 @@ function validate_lesson_password($request)
     }
 
     $stored_password = get_post_meta($entity_id, 'lesson_password', true);
+    $stored_username = get_post_meta($entity_id, 'Username', true);
 
     return array(
-        'valid' => ($password === $stored_password)
+        'valid' => ($password === $stored_password && $username === $stored_username)
     );
 }

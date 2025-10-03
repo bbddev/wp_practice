@@ -74,12 +74,20 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="lessonPasswordModalLabel">Nhập mật khẩu bài học</h5>
+                <h5 class="modal-title" id="lessonPasswordModalLabel">Truy cập bài học</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body">                
+                <div class="form-group">
+                    <label for="usernameInput">Username:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="usernameInput"
+                            placeholder="Nhập username...">
+                    </div>
+                    <div id="usernameError" class="text-danger mt-2" style="display: none;"></div>
+                </div>
                 <div class="form-group">
                     <label for="lessonPasswordInput">Mật khẩu bài học:</label>
                     <div class="input-group">

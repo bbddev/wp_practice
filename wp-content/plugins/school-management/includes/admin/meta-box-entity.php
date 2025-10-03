@@ -27,9 +27,12 @@ function render_entity_meta_box($post)
     // Thêm nonce để bảo mật
     wp_nonce_field('save_entity_meta', 'entity_meta_nonce');
 
+    $entity_username = get_post_meta($post->ID, 'Username', true);
+    $lesson_password = get_post_meta($post->ID, 'lesson_password', true);
     $entity_class = get_post_meta($post->ID, 'Thuộc lớp', true);
     $entity_link = get_post_meta($post->ID, 'Link khi click', true);
     $entity_image = get_post_meta($post->ID, 'Hình', true);
+
 
     // Lấy danh sách tất cả các lớp học
     $classes = get_posts(array(
@@ -39,7 +42,16 @@ function render_entity_meta_box($post)
     ));
 
     ?>
-    <p>
+        <p>
+            <label for="entity_username">Username:</label>
+            <input type="text" id="entity_username" name="entity_username" value="<?php echo esc_attr($entity_username); ?>"
+                style="width: 100%;" />
+        </p>
+        <p>
+            <label for="entity_password">Password:</label>
+            <input type="text" id="lesson_password" name="lesson_password" value="<?php echo esc_attr($lesson_password); ?>"
+                style="width: 100%;" />
+        <p>
         <label for="entity_class">Thuộc lớp:</label>
         <select id="entity_class" name="entity_class" style="width: 100%;">
             <option value="">-- Chọn lớp --</option>

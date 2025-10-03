@@ -43,7 +43,7 @@ window.SchoolManagement.Modal = {
     $("#lessonPasswordModal").on("shown.bs.modal", function () {
       self.forceModalOnTop();
       // Focus on input to ensure it's interactive
-      $("#lessonPasswordInput").focus();
+      $("#usernameInput").focus();
     });
   },
 
