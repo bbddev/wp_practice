@@ -412,7 +412,7 @@ function completeImport(counters) {
 
   var importBtn = document.getElementById("importCsvBtn");
   importBtn.disabled = false;
-  importBtn.value = "Import CSV (Batch Mode)";
+  importBtn.value = "Import CSV";
 
   // Show success message
   var message =
@@ -451,7 +451,7 @@ function completeImport(counters) {
 function handleImportError(message) {
   var importBtn = document.getElementById("importCsvBtn");
   importBtn.disabled = false;
-  importBtn.value = "Import CSV (Batch Mode)";
+  importBtn.value = "Import CSV";
 
   document.getElementById("progressContainer").style.display = "none";
   showNotice("Import error: " + message, "error");

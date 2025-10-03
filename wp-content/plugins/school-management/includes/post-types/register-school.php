@@ -16,10 +16,10 @@ function register_school_post_type()
         'menu_icon' => 'dashicons-welcome-learn-more',
         'publicly_queryable' => false,
         'labels' => [
-            'name' => 'Trường',
-            'singular_name' => 'Trường',
-            'edit_item' => 'View Trường',
-            'add_new_item' => 'Add Trường',
+            'name' => 'Khối',
+            'singular_name' => 'Khối',
+            'edit_item' => 'View Khối',
+            'add_new_item' => 'Add Khối',
         ],
     ];
     register_post_type('school', $args_school);
