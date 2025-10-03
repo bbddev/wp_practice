@@ -22,7 +22,7 @@ function bb_data_plugin_posts_menu()
         27
     );
 }
-add_action('admin_menu', 'bb_data_plugin_posts_menu');
+// add_action('admin_menu', 'bb_data_plugin_posts_menu');
 
 /**
  * Admin page content
@@ -83,7 +83,7 @@ function bb_data_plugin_posts_admin_page()
                         <a href="javascript:void(0);" class="button" onclick="exportDataJson()">Export JSON</a>
                     </div>
                 </div>
-                <div id="csvForm" style="display:block;">                  
+                <div id="csvForm" style="display:block;">
                     <form id="csvImportForm" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
                         enctype="multipart/form-data">
                         <input type="hidden" name="action" value="import_csv_data_posts">
@@ -104,7 +104,7 @@ function bb_data_plugin_posts_admin_page()
                         </div>
                     </form>
                     <!-- Progress bar container (hidden by default) -->
-                       <div id="progressContainer" style="display: none; margin-bottom: 20px;">                        
+                    <div id="progressContainer" style="display: none; margin-bottom: 20px;">
                         <div
                             style="width: 100%; background-color: #e0e0e0; border-radius: 5px; height: 25px; position: relative;">
                             <div id="progressBar"
@@ -113,10 +113,10 @@ function bb_data_plugin_posts_admin_page()
                             <div id="progressPercent"
                                 style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; color: #333;">
                                 0%</div>
-                        </div> 
+                        </div>
                         <div style="margin-top: 10px;">
                             <strong id="progressText">Đang chuẩn bị import...</strong>
-                        </div>                       
+                        </div>
                     </div>
                 </div>
                 <div id="jsonForm" style="display:none;">

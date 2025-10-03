@@ -32,7 +32,7 @@ function bb_data_plugin_export_json_posts()
     echo wp_json_encode($export_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     exit();
 }
-add_action('wp_ajax_export_json_data_posts', 'bb_data_plugin_export_json_posts');
+// add_action('wp_ajax_export_json_data_posts', 'bb_data_plugin_export_json_posts');
 
 /**
  * Handle JSON import
@@ -62,7 +62,7 @@ function bb_data_plugin_import_json_posts()
     wp_redirect(admin_url('admin.php?page=my-data-plugin-posts'));
     exit();
 }
-add_action('wp_ajax_import_json_data_posts', 'bb_data_plugin_import_json_posts');
+// add_action('wp_ajax_import_json_data_posts', 'bb_data_plugin_import_json_posts');
 
 /**
  * Build JSON export data structure

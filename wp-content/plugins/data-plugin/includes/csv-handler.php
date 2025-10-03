@@ -39,7 +39,7 @@ function bb_data_plugin_export_csv_posts()
     fclose($output);
     exit();
 }
-add_action('wp_ajax_export_csv_data_posts', 'bb_data_plugin_export_csv_posts');
+// add_action('wp_ajax_export_csv_data_posts', 'bb_data_plugin_export_csv_posts');
 
 /**
  * Handle CSV import
@@ -69,7 +69,7 @@ function bb_data_plugin_import_csv_posts()
     wp_redirect(admin_url('admin.php?page=my-data-plugin-posts'));
     exit();
 }
-add_action('wp_ajax_import_csv_data_posts', 'bb_data_plugin_import_csv_posts');
+// add_action('wp_ajax_import_csv_data_posts', 'bb_data_plugin_import_csv_posts');
 
 /**
  * Handle batch CSV import - Initialize
@@ -148,7 +148,7 @@ function bb_data_plugin_init_batch_import()
         'batch_size' => $batchSize
     ]));
 }
-add_action('wp_ajax_init_batch_csv_import', 'bb_data_plugin_init_batch_import');
+// add_action('wp_ajax_init_batch_csv_import', 'bb_data_plugin_init_batch_import');
 
 /**
  * Handle batch CSV import - Process single batch
@@ -205,7 +205,7 @@ function bb_data_plugin_process_batch()
         'progress_percent' => round(($endIndex / count($csvData)) * 100, 2)
     ]));
 }
-add_action('wp_ajax_process_batch_csv_import', 'bb_data_plugin_process_batch');
+// add_action('wp_ajax_process_batch_csv_import', 'bb_data_plugin_process_batch');
 
 /**
  * Get posts by type

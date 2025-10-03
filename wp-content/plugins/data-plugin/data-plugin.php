@@ -68,4 +68,24 @@ function bb_data_plugin_admin_assets($hook)
         'ajax_url' => admin_url('admin-ajax.php')
     ));
 }
+// Admin assets
 add_action('admin_enqueue_scripts', 'bb_data_plugin_admin_assets');
+
+// Admin menu
+add_action('admin_menu', 'bb_data_plugin_posts_menu');
+
+// Custom columns
+add_action('init', 'bb_data_add_custom_columns');
+
+// Register custom post types
+add_action('init', 'bb_data_plugin_register_post_types');
+
+// AJAX handlers for CSV
+add_action('wp_ajax_export_csv_data_posts', 'bb_data_plugin_export_csv_posts');
+// add_action('wp_ajax_import_csv_data_posts', 'bb_data_plugin_import_csv_posts');
+add_action('wp_ajax_init_batch_csv_import', 'bb_data_plugin_init_batch_import');
+add_action('wp_ajax_process_batch_csv_import', 'bb_data_plugin_process_batch');
+
+// AJAX handlers for JSON
+add_action('wp_ajax_export_json_data_posts', 'bb_data_plugin_export_json_posts');
+add_action('wp_ajax_import_json_data_posts', 'bb_data_plugin_import_json_posts');

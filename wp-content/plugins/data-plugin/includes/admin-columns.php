@@ -18,7 +18,7 @@ function bb_data_add_custom_columns()
     add_action('manage_class_posts_custom_column', 'bb_data_custom_column_content', 10, 2);
     add_action('manage_entity_posts_custom_column', 'bb_data_custom_column_content', 10, 2);
 }
-add_action('init', 'bb_data_add_custom_columns');
+// add_action('init', 'bb_data_add_custom_columns');
 
 /**
  * Define custom columns
