@@ -19,7 +19,7 @@
                 <button class="btn btn-secondary" onclick="showSchoolSelection()">Back</button>
             </div>
             <div class="col text-center">
-                <h3 class="mb-0">Danh sách học sinh tham gia của lớp <strong id="class-title"></strong>:</h3>
+                <h3 class="mb-0">Danh sách học sinh tham gia của <strong id="class-title"></strong>:</h3>
             </div>
             <div class="col-auto">
                 <!-- Empty column for balance -->
@@ -34,78 +34,73 @@
     </div>
 </div>
 
-<!-- Bootstrap Modal cho Class Password -->
-<div class="modal fade" id="classPasswordModal" tabindex="-1" role="dialog" aria-labelledby="classPasswordModalLabel"
+<!-- Custom Modal cho Class Password -->
+<div class="custom-modal-overlay" id="classPasswordModal" role="dialog" aria-labelledby="classPasswordModalLabel"
     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="classPasswordModalLabel">Nhập mật khẩu lớp học</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="classPasswordInput">Mật khẩu lớp học:</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control" id="classPasswordInput"
-                            placeholder="Nhập mật khẩu...">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" type="button" id="toggleClassPassword">
-                                <i class="fa fa-eye" id="classPasswordIcon"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div id="classPasswordError" class="text-danger mt-2" style="display: none;"></div>
+    <div class="custom-modal" role="document">
+        <div class="custom-modal-header">
+            <h5 class="custom-modal-title" id="classPasswordModalLabel">Nhập mật khẩu lớp học</h5>
+            <button type="button" class="custom-modal-close" onclick="window.SchoolManagement.CustomModal.closeModal()"
+                aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="custom-modal-body">
+            <div class="custom-form-group">
+                <label for="classPasswordInput">Mật khẩu lớp học:</label>
+                <div class="custom-input-group">
+                    <input type="password" class="password-input" id="classPasswordInput"
+                        placeholder="Nhập mật khẩu...">
+                    <button class="custom-password-toggle" type="button" id="toggleClassPassword">
+                        <i class="fa fa-eye" id="classPasswordIcon"></i>
+                    </button>
                 </div>
+                <div id="classPasswordError" class="custom-error-message"></div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" id="submitClassPassword">Xác nhận</button>
-            </div>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="custom-btn custom-btn-secondary"
+                onclick="window.SchoolManagement.CustomModal.closeModal()">Hủy</button>
+            <button type="button" class="custom-btn custom-btn-primary" id="submitClassPassword">Xác nhận</button>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap Modal cho Lesson Password -->
-<div class="modal fade" id="lessonPasswordModal" tabindex="-1" role="dialog" aria-labelledby="lessonPasswordModalLabel"
+<!-- Custom Modal cho Lesson Password -->
+<div class="custom-modal-overlay" id="lessonPasswordModal" role="dialog" aria-labelledby="lessonPasswordModalLabel"
     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="lessonPasswordModalLabel">Truy cập bài học</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">                
-                <div class="form-group">
-                    <label for="usernameInput">Username:</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="usernameInput"
-                            placeholder="Nhập username...">
-                    </div>
-                    <div id="usernameError" class="text-danger mt-2" style="display: none;"></div>
+    <div class="custom-modal" role="document">
+        <div class="custom-modal-header">
+            <h5 class="custom-modal-title" id="lessonPasswordModalLabel">Truy cập bài học</h5>
+            <button type="button" class="custom-modal-close" onclick="window.SchoolManagement.CustomModal.closeModal()"
+                aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="custom-modal-body">
+            <div class="custom-form-group">
+                <label for="usernameInput">Username:</label>
+                <div class="custom-input-group">
+                    <input type="text" id="usernameInput" placeholder="Nhập username...">
                 </div>
-                <div class="form-group">
-                    <label for="lessonPasswordInput">Mật khẩu bài học:</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control" id="lessonPasswordInput"
-                            placeholder="Nhập mật khẩu...">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" type="button" id="toggleLessonPassword">
-                                <i class="fa fa-eye" id="lessonPasswordIcon"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div id="lessonPasswordError" class="text-danger mt-2" style="display: none;"></div>
+                <div id="usernameError" class="custom-error-message"></div>
+            </div>
+            <div class="custom-form-group">
+                <label for="lessonPasswordInput">Mật khẩu bài học:</label>
+                <div class="custom-input-group">
+                    <input type="password" class="password-input" id="lessonPasswordInput"
+                        placeholder="Nhập mật khẩu...">
+                    <button class="custom-password-toggle" type="button" id="toggleLessonPassword">
+                        <i class="fa fa-eye" id="lessonPasswordIcon"></i>
+                    </button>
                 </div>
+                <div id="lessonPasswordError" class="custom-error-message"></div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" id="submitLessonPassword">Xác nhận</button>
-            </div>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="custom-btn custom-btn-secondary"
+                onclick="window.SchoolManagement.CustomModal.closeModal()">Hủy</button>
+            <button type="button" class="custom-btn custom-btn-primary" id="submitLessonPassword">Xác nhận</button>
         </div>
     </div>
 </div>

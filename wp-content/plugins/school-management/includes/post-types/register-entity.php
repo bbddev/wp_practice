@@ -16,10 +16,10 @@ function register_entity_post_type()
         'menu_icon' => 'dashicons-id',
         'publicly_queryable' => false,
         'labels' => [
-            'name' => 'Thực thể',
-            'singular_name' => 'Thực thể',
-            'edit_item' => 'View Thực thể',
-            'add_new_item' => 'Add Entity',
+            'name' => 'Bài học',
+            'singular_name' => 'Bài học',
+            'edit_item' => 'View Bài học',
+            'add_new_item' => 'Add Bài học',
         ],
         'supports' => ['title'],
     ];

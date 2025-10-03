@@ -34,6 +34,8 @@ function render_class_meta_box($post)
         'post_status' => 'publish'
     ));
 
+    $class_password = get_post_meta($post->ID, 'class_password', true);
+
     ?>
     <p>
         <label for="class_school">Thuộc khối:</label>
@@ -46,6 +48,10 @@ function render_class_meta_box($post)
                 </option>
             <?php endforeach; ?>
         </select>
+    </p>
+    <p>
+        <label for="class_password">Mật khẩu lớp học:</label>
+        <input type="text" id="class_password" name="class_password" value="<?php echo esc_attr($class_password); ?>" style="width: 100%;" />
     </p>
     <?php
 }

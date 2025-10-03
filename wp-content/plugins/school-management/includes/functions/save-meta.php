@@ -45,6 +45,9 @@ function save_class_meta($post_id)
     if (get_post_type($post_id) !== 'class') {
         return;
     }
+    if (isset($_POST['class_password'])) {
+        update_post_meta($post_id, 'class_password', sanitize_text_field($_POST['class_password']));
+    }
 
     if (isset($_POST['class_school'])) {
         update_post_meta($post_id, 'Thuộc Trường', sanitize_text_field($_POST['class_school']));

@@ -32,14 +32,6 @@ function enqueue_school_management_frontend_scripts()
         '5.15.4'
     );
 
-    wp_enqueue_script(
-        'bootstrap-js',
-        'https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js',
-        array('jquery'),
-        '4.6.0',
-        true
-    );
-
     // Use file modification time as version to prevent caching issues
     $css_version = filemtime(SCHOOLPLUGIN_PATH . '/assets/style/school-management.css');
 
@@ -50,18 +42,28 @@ function enqueue_school_management_frontend_scripts()
         $css_version
     );
 
+    // Use file modification time as version to prevent caching issues for custom modal CSS
+    $custom_modal_css_version = filemtime(SCHOOLPLUGIN_PATH . '/assets/style/custom-modal.css');
+
+    wp_enqueue_style(
+        'custom-modal-css',
+        SCHOOLPLUGIN_URL . '/assets/style/custom-modal.css',
+        array(),
+        $custom_modal_css_version
+    );
+
     // Enqueue modular JavaScript files
     $js_modules = array(
         'utils' => '/assets/js/modules/utils.js',
         'pagination' => '/assets/js/modules/pagination.js',
         'entity' => '/assets/js/modules/entity.js',
-        'password' => '/assets/js/modules/password.js',
-        'modal' => '/assets/js/modules/modal.js',
+        'custom-modal' => '/assets/js/modules/custom-modal.js',
+        'custom-password' => '/assets/js/modules/custom-password.js',
         'school-class' => '/assets/js/modules/school-class.js',
         'main' => '/assets/js/school-management-main.js'
     );
 
-    $previous_handle = array('jquery', 'bootstrap-js');
+    $previous_handle = array('jquery');
 
     foreach ($js_modules as $handle => $file_path) {
         $full_path = SCHOOLPLUGIN_PATH . $file_path;

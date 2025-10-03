@@ -1,7 +1,6 @@
 window.SchoolManagement = window.SchoolManagement || {};
 
 window.SchoolManagement.App = {
-
   init: function () {
     // Wait for DOM to be ready
     jQuery(document).ready(
@@ -13,7 +12,6 @@ window.SchoolManagement.App = {
   },
 
   initializeModules: function ($) {
-
     if (window.SchoolManagement.Pagination) {
       window.SchoolManagement.Pagination.init($);
     }
@@ -21,15 +19,6 @@ window.SchoolManagement.App = {
     if (window.SchoolManagement.Entity) {
       window.SchoolManagement.Entity.init($);
     }
-
-    if (window.SchoolManagement.Password) {
-      window.SchoolManagement.Password.init($);
-    }
-
-    if (window.SchoolManagement.Modal) {
-      window.SchoolManagement.Modal.init($);
-    }
-
     if (window.SchoolManagement.SchoolClass) {
       window.SchoolManagement.SchoolClass.init($);
     }
