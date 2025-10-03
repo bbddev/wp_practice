@@ -31,6 +31,7 @@ function bb_data_custom_columns($columns)
         $columns['csv_password'] = 'Password';
         $columns['csv_parent'] = 'Parent';
     } elseif ($typenow === 'entity') {
+        $columns['csv_username'] = 'Username';
         $columns['csv_password'] = 'Password';
         $columns['csv_parent'] = 'Parent';
         $columns['csv_link'] = 'Link';
@@ -62,6 +63,10 @@ function bb_data_custom_column_content($column, $post_id)
 
         case 'csv_image':
             bb_data_display_image_column($post_type, $post_id);
+            break;
+
+        case 'csv_username':
+            bb_data_display_username_column($post_type, $post_id);
             break;
     }
 }
@@ -125,5 +130,15 @@ function bb_data_display_image_column($post_type, $post_id)
         } else {
             echo '-';
         }
+    }
+}
+/**
+ * Display username column
+ */
+function bb_data_display_username_column($post_type, $post_id)
+{
+    if ($post_type === 'entity') {
+        $username = get_post_meta($post_id, 'Username', true);
+        echo esc_html($username ?: '-');
     }
 }

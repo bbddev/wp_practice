@@ -357,6 +357,7 @@ function bb_data_process_csv_line($line, &$counters)
     $parent = isset($line[3]) ? trim($line[3]) : '';
     $link = isset($line[4]) ? trim($line[4]) : '';
     $image_url = isset($line[5]) ? trim($line[5]) : '';
+    $username = isset($line[6]) ? trim($line[6]) : '';
 
     if (empty($title) || !in_array($type, array('school', 'class', 'entity'))) {
         $counters['skipped']++;
@@ -393,9 +394,9 @@ function bb_data_process_csv_line($line, &$counters)
 
 
     if ($existing_post) {
-        bb_data_update_existing_post($existing_post, $type, $password, $parent, $link, $image_url, $counters);
+        bb_data_update_existing_post($existing_post, $type, $password, $parent, $link, $image_url, $username, $counters);
     } else {
-        bb_data_create_new_post($type, $title, $password, $parent, $link, $image_url, $counters);
+        bb_data_create_new_post($type, $title, $password, $parent, $link, $image_url, $username, $counters);
     }
 
     $counters['imported']++;
@@ -404,16 +405,16 @@ function bb_data_process_csv_line($line, &$counters)
 /**
  * Update existing post
  */
-function bb_data_update_existing_post($post, $type, $password, $parent, $link, $image_url, &$counters)
+function bb_data_update_existing_post($post, $type, $password, $parent, $link, $image_url, $username, &$counters)
 {
-    bb_data_update_post_meta($post->ID, $type, $password, $parent, $link, $image_url);
+    bb_data_update_post_meta($post->ID, $type, $password, $parent, $link, $image_url, $username);
     $counters['updated']++;
 }
 
 /**
  * Create new post
  */
-function bb_data_create_new_post($type, $title, $password, $parent, $link, $image_url, &$counters)
+function bb_data_create_new_post($type, $title, $password, $parent, $link, $image_url, $username, &$counters)
 {
     $post_id = wp_insert_post(array(
         'post_title' => $title,
@@ -422,7 +423,7 @@ function bb_data_create_new_post($type, $title, $password, $parent, $link, $imag
     ));
 
     if ($post_id) {
-        bb_data_update_post_meta($post_id, $type, $password, $parent, $link, $image_url);
+        bb_data_update_post_meta($post_id, $type, $password, $parent, $link, $image_url, $username);
         $counters['created']++;
     } else {
         $counters['skipped']++;
@@ -432,7 +433,7 @@ function bb_data_create_new_post($type, $title, $password, $parent, $link, $imag
 /**
  * Update post meta based on type
  */
-function bb_data_update_post_meta($post_id, $type, $password, $parent, $link, $image_url)
+function bb_data_update_post_meta($post_id, $type, $password, $parent, $link, $image_url, $username)
 {
     switch ($type) {
         case 'class':
@@ -456,6 +457,9 @@ function bb_data_update_post_meta($post_id, $type, $password, $parent, $link, $i
             }
             if (!empty($image_url)) {
                 update_post_meta($post_id, 'Hình', $image_url);
+            }
+            if (!empty($username)) {
+                update_post_meta($post_id, 'Username', $username);
             }
             break;
     }

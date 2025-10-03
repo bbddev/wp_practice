@@ -16,7 +16,7 @@ function bb_data_plugin_register_post_types()
     bb_data_plugin_register_class_post_type();
     bb_data_plugin_register_entity_post_type();
 }
-add_action('init', 'bb_data_plugin_register_post_types');
+// add_action('init', 'bb_data_plugin_register_post_types');
 
 /**
  * Register School Post Type
