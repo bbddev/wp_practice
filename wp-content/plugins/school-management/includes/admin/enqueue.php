@@ -92,4 +92,4 @@ function enqueue_school_management_frontend_scripts()
     ));
 }
 
-add_action('wp_enqueue_scripts', 'enqueue_school_management_frontend_scripts');
+// add_action('wp_enqueue_scripts', 'enqueue_school_management_frontend_scripts');
