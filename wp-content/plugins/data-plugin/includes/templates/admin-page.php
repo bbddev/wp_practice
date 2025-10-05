@@ -44,17 +44,17 @@ function bb_data_plugin_posts_admin_page()
         <h1>Import Data</h1>
 
         <?php if (!empty($statusMsg)) { ?>
-            <div class="alert alert-<?php echo esc_attr($status); ?>"
+            <!-- <div class="alert alert-<?php echo esc_attr($status); ?>"
                 style="display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
                 <div class="status-message">
                     <?php echo esc_html($statusMsg); ?>
                 </div>
                 <div class="view-links" style="white-space: nowrap;">
-                    <a href="edit.php?post_type=entity" style="font-style: italic;">View Lesson List</a>,
-                    <a href="edit.php?post_type=class" style="font-style: italic;">View Class List</a>,
+                    <a href="edit.php?post_type=entity" style="font-style: italic;">View Lesson List</a> -
+                    <a href="edit.php?post_type=class" style="font-style: italic;">View Class List</a> -
                     <a href="edit.php?post_type=school" style="font-style: italic;">View School List</a>
                 </div>
-            </div>
+            </div> -->
         <?php } ?>
 
         <div class="row">
@@ -103,6 +103,8 @@ function bb_data_plugin_posts_admin_page()
                                 style="padding: 10px 20px; margin-left: 10px;"> -->
                         </div>
                     </form>
+                </div>
+
                     <!-- Progress bar container (hidden by default) -->
                     <div id="progressContainer" style="display: none; margin-bottom: 20px;">
                         <div
@@ -118,7 +120,6 @@ function bb_data_plugin_posts_admin_page()
                             <strong id="progressText">Đang chuẩn bị import...</strong>
                         </div>
                     </div>
-                </div>
                 <div id="jsonForm" style="display:none;">
                     <!-- JSON file upload form -->
                     <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
