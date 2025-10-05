@@ -146,8 +146,13 @@ window.SchoolManagement.StudentLogin = {
         );
         if (data && data.success) {
           window.SchoolManagement.CustomModal.hideModal("studentLoginModal");
-          self.updateLoginStatus(true, data.student_id, data.student_name);
-          // run pending callback
+          // self.updateLoginStatus(true, data.student_id, data.student_name);
+            window.SchoolManagement.StudentLogin.updateLoginStatus(
+              true,
+              data.student_id,
+              data.student_name
+            );
+          
           if (
             typeof window.SchoolManagement.StudentLogin.pendingCallback ===
             "function"
@@ -210,7 +215,7 @@ window.SchoolManagement.StudentLogin = {
     const studentNameEl = document.getElementById("student-name");
 
     if (isLoggedIn) {
-      if (statusDiv) statusDiv.style.display = "block";
+      if (statusDiv) statusDiv.style.display = "flex";
       if (studentNameEl) {
         studentNameEl.textContent =
           studentName || "Học sinh #" + (studentId || "???");

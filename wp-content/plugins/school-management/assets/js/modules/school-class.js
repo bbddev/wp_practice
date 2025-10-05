@@ -56,10 +56,11 @@ window.SchoolManagement.SchoolClass = {
             self.handleSchoolChange(schoolId);
           }
         );
-      } else {
-        // Fallback: just handle change
-        self.handleSchoolChange(schoolId);
       }
+      // else {
+      //   // Fallback: just handle change
+      //   self.handleSchoolChange(schoolId);
+      // }
     });
 
     $("#class-dropdown").on("change", function () {
