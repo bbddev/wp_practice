@@ -1,27 +1,25 @@
 <div id="school-management-container">
     <!-- Student Status Section -->
-    <div id="student-status"
-        style="display: none; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+    <div id="student-status" class="student-status">
         <span id="student-info">Đã đăng nhập: <strong id="student-name"></strong></span>
-        <button type="button" id="student-logout-btn" class="btn btn-sm btn-outline-secondary"
-            style="margin-left: 10px;">Đăng xuất</button>
+        <button type="button" id="student-logout-btn" class="btn btn-sm btn-outline-secondary student-logout-btn">Đăng xuất</button>
     </div>
 
     <div id="select-school">
-        <label for="school-dropdown" style="text-align: center;">Chọn khối học sinh tham gia:</label>
-        <select id="school-dropdown" style="margin: auto;">
+        <label for="school-dropdown" class="center-label">Chọn khối học sinh tham gia:</label>
+        <select id="school-dropdown" class="center-select">
             <option value="">-- Chọn khối học sinh tham gia --</option>
         </select>
     </div>
 
-    <div id="select-class" style="display: none;">
-        <label for="class-dropdown" style="text-align: center;">Chọn danh sách bài học:</label>
-        <select id="class-dropdown" style="margin: auto;">
+    <div id="select-class" class="select-class">
+        <label for="class-dropdown" class="center-label">Chọn danh sách bài học:</label>
+        <select id="class-dropdown" class="center-select">
             <option value="">-- Chọn --</option>
         </select>
     </div>
 
-    <div id="entity-container" style="display: none;">
+    <div id="entity-container" class="entity-container">
         <div class="row d-flex justify-content-between align-items-center mb-3">
             <div class="col-auto">
                 <button class="btn btn-secondary" onclick="showSchoolSelection()">Back</button>
@@ -36,7 +34,7 @@
         <div id="entity-grid" class="entity-grid">
             <!-- AJAX -->
         </div>
-        <div id="pagination-container" style="display: none; margin-top: 20px;">
+        <div id="pagination-container" class="pagination-container">
             <!-- Pagination will be generated here -->
         </div>
     </div>

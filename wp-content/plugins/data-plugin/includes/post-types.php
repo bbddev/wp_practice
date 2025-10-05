@@ -15,6 +15,7 @@ function bb_data_plugin_register_post_types()
     bb_data_plugin_register_school_post_type();
     bb_data_plugin_register_class_post_type();
     bb_data_plugin_register_entity_post_type();
+    bb_data_plugin_register_student_post_type();
 }
 // add_action('init', 'bb_data_plugin_register_post_types');
 
@@ -102,6 +103,35 @@ function bb_data_plugin_register_entity_post_type()
         'has_archive' => false,
         'rewrite' => false,
         'menu_icon' => 'dashicons-media-document'
+    ));
+}
+
+/**
+ * Register Entity Post Type
+ */
+function bb_data_plugin_register_student_post_type()
+{
+    register_post_type('student', array(
+        'labels' => array(
+            'name' => 'Students',
+            'singular_name' => 'Student',
+            'add_new' => 'Add New Student',
+            'add_new_item' => 'Add New Student',
+            'edit_item' => 'Edit Student',
+            'new_item' => 'New Student',
+            'view_item' => 'View Student',
+            'search_items' => 'Search Students',
+            'not_found' => 'No Students found',
+            'not_found_in_trash' => 'No Students found in Trash'
+        ),
+        'public' => false,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'capability_type' => 'post',
+        'supports' => array('title'),
+        'has_archive' => false,
+        'rewrite' => false,
+        'menu_icon' => 'dashicons-welcome-learn-more'
     ));
 }
 
