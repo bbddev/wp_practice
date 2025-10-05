@@ -6,10 +6,6 @@ if (!defined('ABSPATH')) {
 
 /**
  * Student Session Manager Class
- * 
- * Quản lý session cho học sinh trong hệ thống School Management
- * Có thể tái sử dụng cho các project khác bằng cách chỉnh sửa các constants và meta keys
- * 
  * @version 1.0.0
  * @author Your Name
  */

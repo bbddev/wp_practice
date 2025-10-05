@@ -1,18 +1,13 @@
 <?php
-/**
- * Example usage của StudentSessionManager
- * File này demo các cách sử dụng phổ biến của SessionManager
- */
-
 // Include SessionManager (adjust path accordingly)
 require_once __DIR__ . '/session-manager.php';
 
 /**
- * Example 1: Basic Login Flow
+ * Login Flow
  */
 function example_login_flow()
 {
-    echo "<h2>Example 1: Basic Login Flow</h2>";
+    echo "<h2>Login Flow</h2>";
 
     // Simulate login attempt
     $username = "student001";
@@ -23,11 +18,11 @@ function example_login_flow()
     $result = StudentSessionManager::login($username, $password);
 
     if ($result['success']) {
-        echo "✅ Login successful!<br>";
+        echo "Login successful!<br>";
         echo "Student ID: " . $result['student_id'] . "<br>";
         echo "Student Name: " . $result['student_name'] . "<br>";
     } else {
-        echo "❌ Login failed: " . $result['message'] . "<br>";
+        echo "Login failed: " . $result['message'] . "<br>";
         if (isset($result['error_code'])) {
             echo "Error Code: " . $result['error_code'] . "<br>";
         }
@@ -35,20 +30,20 @@ function example_login_flow()
 }
 
 /**
- * Example 2: Check Current Session
+ * Check Current Session
  */
 function example_check_session()
 {
-    echo "<h2>Example 2: Check Current Session</h2>";
+    echo "<h2>Check Current Session</h2>";
 
     $session = StudentSessionManager::checkSession();
 
     if ($session['logged_in']) {
-        echo "✅ Student is logged in<br>";
+        echo "Student is logged in<br>";
         echo "Student ID: " . $session['student_id'] . "<br>";
         echo "Student Name: " . $session['student_name'] . "<br>";
     } else {
-        echo "❌ No student logged in<br>";
+        echo "No student logged in<br>";
     }
 }
 
@@ -57,12 +52,12 @@ function example_check_session()
  */
 function example_get_current_student()
 {
-    echo "<h2>Example 3: Get Current Student Details</h2>";
+    echo "<h2>Get Current Student Details</h2>";
 
     $student = StudentSessionManager::getCurrentStudent();
 
     if ($student) {
-        echo "✅ Current student details:<br>";
+        echo "Current student details:<br>";
         echo "ID: " . $student['id'] . "<br>";
         echo "Name: " . $student['name'] . "<br>";
         echo "Username: " . $student['username'] . "<br>";
@@ -76,7 +71,7 @@ function example_get_current_student()
             }
         }
     } else {
-        echo "❌ No student details available<br>";
+        echo "No student details available<br>";
     }
 }
 
@@ -92,9 +87,9 @@ function example_check_access()
     $hasAccess = StudentSessionManager::hasAccessToResource($class_id, 'class');
 
     if ($hasAccess) {
-        echo "✅ Student has access to class $class_id<br>";
+        echo "Student has access to class $class_id<br>";
     } else {
-        echo "❌ Student does not have access to class $class_id<br>";
+        echo "Student does not have access to class $class_id<br>";
     }
 }
 
@@ -122,9 +117,9 @@ function example_logout()
     $result = StudentSessionManager::logout();
 
     if ($result['success']) {
-        echo "✅ Logout successful: " . $result['message'] . "<br>";
+        echo "Logout successful: " . $result['message'] . "<br>";
     } else {
-        echo "❌ Logout failed<br>";
+        echo "Logout failed<br>";
     }
 }
 
@@ -139,21 +134,21 @@ function example_protected_page()
     $isLoggedIn = StudentSessionManager::requireLogin(); // No redirect in this example
 
     if ($isLoggedIn) {
-        echo "✅ Access granted! This is protected content.<br>";
+        echo "Access granted! This is protected content.<br>";
 
         $student = StudentSessionManager::getCurrentStudent();
         echo "Welcome back, " . $student['name'] . "!<br>";
     } else {
-        echo "❌ Access denied. Please login first.<br>";
+        echo "Access denied. Please login first.<br>";
     }
 }
 
 /**
- * Example 8: Custom Error Handling
+ * Custom Error Handling
  */
 function example_error_handling()
 {
-    echo "<h2>Example 8: Custom Error Handling</h2>";
+    echo "<h2>Custom Error Handling</h2>";
 
     // Test with invalid credentials
     $result = StudentSessionManager::login("invalid_user", "wrong_password");
@@ -161,23 +156,23 @@ function example_error_handling()
     if (!$result['success']) {
         switch ($result['error_code']) {
             case 'INVALID_INPUT':
-                echo "🔴 Please provide both username and password<br>";
+                echo "Please provide both username and password<br>";
                 break;
             case 'INVALID_CREDENTIALS':
-                echo "🔴 Username or password is incorrect<br>";
+                echo "Username or password is incorrect<br>";
                 break;
             default:
-                echo "🔴 An unknown error occurred<br>";
+                echo "An unknown error occurred<br>";
         }
     }
 }
 
 /**
- * Example 9: REST API Integration
+ * REST API Integration
  */
 function example_rest_api_usage()
 {
-    echo "<h2>Example 9: REST API Integration</h2>";
+    echo "<h2>REST API Integration</h2>";
 
     echo "REST API Endpoints:<br>";
     echo "• GET /wp-json/school-management/v1/check-student-session<br>";
