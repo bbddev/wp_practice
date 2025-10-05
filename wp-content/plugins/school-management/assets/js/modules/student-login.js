@@ -51,6 +51,14 @@ window.SchoolManagement.StudentLogin = {
         );
       });
     }
+
+    // Logout button
+    const logoutBtn = document.getElementById("student-logout-btn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", function () {
+        self.logout();
+      });
+    }
   },
 
   /**
@@ -70,11 +78,13 @@ window.SchoolManagement.StudentLogin = {
       success: function (data) {
         if (data && data.logged_in) {
           // already logged in
+          self.updateLoginStatus(true, data.student_id, data.student_name);
           if (typeof self.pendingCallback === "function") {
             self.pendingCallback();
             self.pendingCallback = null;
           }
         } else {
+          self.updateLoginStatus(false);
           // show login modal
           window.SchoolManagement.CustomModal.showModal("studentLoginModal", {
             onShow: function () {
@@ -136,6 +146,7 @@ window.SchoolManagement.StudentLogin = {
         );
         if (data && data.success) {
           window.SchoolManagement.CustomModal.hideModal("studentLoginModal");
+          self.updateLoginStatus(true, data.student_id, data.student_name);
           // run pending callback
           if (
             typeof window.SchoolManagement.StudentLogin.pendingCallback ===
@@ -162,6 +173,52 @@ window.SchoolManagement.StudentLogin = {
         );
       },
     });
+  },
+
+  /**
+   * Logout current student
+   */
+  logout: function () {
+    const self = this;
+
+    window.SchoolManagement.Utils.createAjaxRequest({
+      url: schoolManagementAjax.apiUrl + "school-management/v1/student-logout",
+      method: "POST",
+      success: function (data) {
+        if (data && data.success) {
+          self.updateLoginStatus(false);
+          // Reset school selection
+          if (window.SchoolManagement.SchoolClass) {
+            window.SchoolManagement.SchoolClass.showSchoolSelection();
+          }
+        }
+      },
+      error: function () {
+        console.error("Error during logout");
+      },
+    });
+  },
+
+  /**
+   * Update login status UI
+   * @param {boolean} isLoggedIn - Whether user is logged in
+   * @param {number} studentId - Student ID (optional)
+   * @param {string} studentName - Student name (optional)
+   */
+  updateLoginStatus: function (isLoggedIn, studentId, studentName) {
+    const statusDiv = document.getElementById("student-status");
+    const studentNameEl = document.getElementById("student-name");
+
+    if (isLoggedIn) {
+      if (statusDiv) statusDiv.style.display = "block";
+      if (studentNameEl) {
+        studentNameEl.textContent =
+          studentName || "Học sinh #" + (studentId || "???");
+      }
+    } else {
+      if (statusDiv) statusDiv.style.display = "none";
+      if (studentNameEl) studentNameEl.textContent = "";
+    }
   },
 };
 

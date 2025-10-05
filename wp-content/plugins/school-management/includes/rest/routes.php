@@ -117,6 +117,12 @@ function register_school_management_routes()
             ),
         ),
     ));
+
+    // Student logout
+    register_rest_route('school-management/v1', '/student-logout', array(
+        'methods' => 'POST',
+        'callback' => 'student_logout',
+    ));
 }
 
 /**
@@ -298,10 +304,19 @@ function check_student_session()
     }
 
     $student_id = isset($_SESSION['school_management_student_id']) ? intval($_SESSION['school_management_student_id']) : 0;
+    $student_name = '';
+
+    if ($student_id > 0) {
+        $student_post = get_post($student_id);
+        if ($student_post && $student_post->post_type === 'student') {
+            $student_name = $student_post->post_title;
+        }
+    }
 
     return array(
         'logged_in' => $student_id > 0,
         'student_id' => $student_id,
+        'student_name' => $student_name,
     );
 }
 
@@ -349,9 +364,29 @@ function student_login($request)
         if ($password === $stored_password) {
             // success - set session
             $_SESSION['school_management_student_id'] = $student->ID;
-            return array('success' => true, 'student_id' => $student->ID);
+            return array(
+                'success' => true,
+                'student_id' => $student->ID,
+                'student_name' => $student->post_title
+            );
         }
     }
 
     return array('success' => false, 'message' => 'Invalid credentials');
+}
+
+
+/**
+ * Handle student logout - clear session
+ */
+function student_logout()
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    // Clear student session
+    unset($_SESSION['school_management_student_id']);
+
+    return array('success' => true, 'message' => 'Logged out successfully');
 }

@@ -12,6 +12,7 @@ window.SchoolManagement.SchoolClass = {
     this.$ = $;
     this.bindEvents();
     this.loadSchools();
+    this.checkInitialLoginStatus();
   },
 
   showSchoolSelection: function () {
@@ -194,6 +195,34 @@ window.SchoolManagement.SchoolClass = {
             classItem.post_title +
             "</option>"
         );
+      });
+    }
+  },
+
+  /**
+   * Check login status on page load to show/hide logout button
+   */
+  checkInitialLoginStatus: function () {
+    if (window.SchoolManagement.StudentLogin) {
+      window.SchoolManagement.Utils.createAjaxRequest({
+        url:
+          schoolManagementAjax.apiUrl +
+          "school-management/v1/check-student-session",
+        method: "GET",
+        success: function (data) {
+          if (data && data.logged_in) {
+            window.SchoolManagement.StudentLogin.updateLoginStatus(
+              true,
+              data.student_id,
+              data.student_name
+            );
+          } else {
+            window.SchoolManagement.StudentLogin.updateLoginStatus(false);
+          }
+        },
+        error: function () {
+          console.error("Error checking initial login status");
+        },
       });
     }
   },

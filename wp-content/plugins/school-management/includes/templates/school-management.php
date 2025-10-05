@@ -1,4 +1,12 @@
 <div id="school-management-container">
+    <!-- Student Status Section -->
+    <div id="student-status"
+        style="display: none; text-align: right; margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+        <span id="student-info">Đã đăng nhập: <strong id="student-name"></strong></span>
+        <button type="button" id="student-logout-btn" class="btn btn-sm btn-outline-secondary"
+            style="margin-left: 10px;">Đăng xuất</button>
+    </div>
+
     <div id="select-school">
         <label for="school-dropdown" style="text-align: center;">Chọn khối học sinh tham gia:</label>
         <select id="school-dropdown" style="margin: auto;">
