@@ -178,7 +178,7 @@ function bb_data_plugin_posts_admin_page()
                                 student_password, student_link, student_image</small>
                         </div>
                         <div id="select-student-of">
-                            <label for="student-of-dropdown" class="center-label">Khối</label>
+                            <label for="student-of-dropdown" class="center-label" style="font-weight: bold;">Khối:   </label>
                             <select id="student-of-dropdown" class="center-select">
                                 <option value="">-- Chọn --</option>
                             </select>
