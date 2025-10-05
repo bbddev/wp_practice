@@ -104,3 +104,42 @@
         </div>
     </div>
 </div>
+
+<!-- Custom Modal cho Student Login -->
+<div class="custom-modal-overlay" id="studentLoginModal" role="dialog" aria-labelledby="studentLoginModalLabel"
+    aria-hidden="true">
+    <div class="custom-modal" role="document">
+        <div class="custom-modal-header">
+            <h5 class="custom-modal-title" id="studentLoginModalLabel">Đăng nhập học sinh</h5>
+            <button type="button" class="custom-modal-close" onclick="window.SchoolManagement.CustomModal.closeModal()"
+                aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="custom-modal-body">
+            <div class="custom-form-group">
+                <label for="studentUsernameInput">Username:</label>
+                <div class="custom-input-group">
+                    <input type="text" id="studentUsernameInput" placeholder="Nhập username...">
+                </div>
+                <div id="studentUsernameError" class="custom-error-message"></div>
+            </div>
+            <div class="custom-form-group">
+                <label for="studentPasswordInput">Mật khẩu:</label>
+                <div class="custom-input-group">
+                    <input type="password" class="password-input" id="studentPasswordInput"
+                        placeholder="Nhập mật khẩu...">
+                    <button class="custom-password-toggle" type="button" id="toggleStudentPassword">
+                        <i class="fa fa-eye" id="studentPasswordIcon"></i>
+                    </button>
+                </div>
+                <div id="studentPasswordError" class="custom-error-message"></div>
+            </div>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="custom-btn custom-btn-secondary"
+                onclick="window.SchoolManagement.CustomModal.closeModal()">Hủy</button>
+            <button type="button" class="custom-btn custom-btn-primary" id="submitStudentLogin">Xác nhận</button>
+        </div>
+    </div>
+</div>

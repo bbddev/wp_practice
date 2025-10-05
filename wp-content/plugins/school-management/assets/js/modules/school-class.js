@@ -47,7 +47,18 @@ window.SchoolManagement.SchoolClass = {
 
     $("#school-dropdown").on("change", function () {
       const schoolId = $(this).val();
-      self.handleSchoolChange(schoolId);
+      // Before handling school change, ensure a student is logged in
+      if (window.SchoolManagement.StudentLogin) {
+        // Provide a callback to run after session check / login
+        window.SchoolManagement.StudentLogin.checkSessionWithCallback(
+          function () {
+            self.handleSchoolChange(schoolId);
+          }
+        );
+      } else {
+        // Fallback: just handle change
+        self.handleSchoolChange(schoolId);
+      }
     });
 
     $("#class-dropdown").on("change", function () {

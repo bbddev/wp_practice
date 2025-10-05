@@ -95,6 +95,28 @@ function register_school_management_routes()
             ),
         ),
     ));
+
+    // Check student session
+    register_rest_route('school-management/v1', '/check-student-session', array(
+        'methods' => 'GET',
+        'callback' => 'check_student_session',
+    ));
+
+    // Student login
+    register_rest_route('school-management/v1', '/student-login', array(
+        'methods' => 'POST',
+        'callback' => 'student_login',
+        'args' => array(
+            'username' => array(
+                'required' => true,
+                'sanitize_callback' => 'sanitize_text_field',
+            ),
+            'password' => array(
+                'required' => true,
+                'sanitize_callback' => 'sanitize_text_field',
+            ),
+        ),
+    ));
 }
 
 /**
@@ -263,4 +285,73 @@ function validate_lesson_password($request)
     return array(
         'valid' => ($password === $stored_password && $username === $stored_username)
     );
+}
+
+
+/**
+ * Check if a student is logged in via PHP session
+ */
+function check_student_session()
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    $student_id = isset($_SESSION['school_management_student_id']) ? intval($_SESSION['school_management_student_id']) : 0;
+
+    return array(
+        'logged_in' => $student_id > 0,
+        'student_id' => $student_id,
+    );
+}
+
+
+/**
+ * Handle student login. Look up student post by meta username and password.
+ */
+function student_login($request)
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    $params = $request->get_params();
+    $username = isset($params['username']) ? sanitize_text_field($params['username']) : '';
+    $password = isset($params['password']) ? sanitize_text_field($params['password']) : '';
+
+    if (empty($username) || empty($password)) {
+        return new WP_Error('invalid_input', 'Username and password required', array('status' => 400));
+    }
+
+    // Query students with matching username
+    $args = array(
+        'post_type' => 'student',
+        'numberposts' => -1,
+        'post_status' => 'publish',
+        'meta_query' => array(
+            array(
+                'key' => 'student_username',
+                'value' => $username,
+                'compare' => '='
+            )
+        )
+    );
+
+    $students = get_posts($args);
+
+    if (!$students || count($students) === 0) {
+        return array('success' => false, 'message' => 'Invalid credentials');
+    }
+
+    // Find the first student with matching password
+    foreach ($students as $student) {
+        $stored_password = get_post_meta($student->ID, 'student_password', true);
+        if ($password === $stored_password) {
+            // success - set session
+            $_SESSION['school_management_student_id'] = $student->ID;
+            return array('success' => true, 'student_id' => $student->ID);
+        }
+    }
+
+    return array('success' => false, 'message' => 'Invalid credentials');
 }

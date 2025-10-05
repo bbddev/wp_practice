@@ -62,6 +62,7 @@ function enqueue_school_management_frontend_scripts()
         'entity' => '/assets/js/modules/entity.js',
         'custom-modal' => '/assets/js/modules/custom-modal.js',
         'custom-password' => '/assets/js/modules/custom-password.js',
+        'student-login' => '/assets/js/modules/student-login.js',
         'school-class' => '/assets/js/modules/school-class.js',
         'main' => '/assets/js/school-management-main.js'
     );
