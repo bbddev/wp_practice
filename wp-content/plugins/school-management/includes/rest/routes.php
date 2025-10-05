@@ -4,6 +4,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+// Include SessionManager
+require_once plugin_dir_path(__FILE__) . '../utilities/session-manager.php';
+
 /**
  * Register REST API routes
  */
@@ -299,25 +302,7 @@ function validate_lesson_password($request)
  */
 function check_student_session()
 {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-
-    $student_id = isset($_SESSION['school_management_student_id']) ? intval($_SESSION['school_management_student_id']) : 0;
-    $student_name = '';
-
-    if ($student_id > 0) {
-        $student_post = get_post($student_id);
-        if ($student_post && $student_post->post_type === 'student') {
-            $student_name = $student_post->post_title;
-        }
-    }
-
-    return array(
-        'logged_in' => $student_id > 0,
-        'student_id' => $student_id,
-        'student_name' => $student_name,
-    );
+    return StudentSessionManager::checkSession();
 }
 
 
@@ -326,53 +311,11 @@ function check_student_session()
  */
 function student_login($request)
 {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-
     $params = $request->get_params();
-    $username = isset($params['username']) ? sanitize_text_field($params['username']) : '';
-    $password = isset($params['password']) ? sanitize_text_field($params['password']) : '';
+    $username = isset($params['username']) ? $params['username'] : '';
+    $password = isset($params['password']) ? $params['password'] : '';
 
-    if (empty($username) || empty($password)) {
-        return new WP_Error('invalid_input', 'Username and password required', array('status' => 400));
-    }
-
-    // Query students with matching username
-    $args = array(
-        'post_type' => 'student',
-        'numberposts' => -1,
-        'post_status' => 'publish',
-        'meta_query' => array(
-            array(
-                'key' => 'student_username',
-                'value' => $username,
-                'compare' => '='
-            )
-        )
-    );
-
-    $students = get_posts($args);
-
-    if (!$students || count($students) === 0) {
-        return array('success' => false, 'message' => 'Invalid credentials');
-    }
-
-    // Find the first student with matching password
-    foreach ($students as $student) {
-        $stored_password = get_post_meta($student->ID, 'student_password', true);
-        if ($password === $stored_password) {
-            // success - set session
-            $_SESSION['school_management_student_id'] = $student->ID;
-            return array(
-                'success' => true,
-                'student_id' => $student->ID,
-                'student_name' => $student->post_title
-            );
-        }
-    }
-
-    return array('success' => false, 'message' => 'Invalid credentials');
+    return StudentSessionManager::login($username, $password);
 }
 
 
@@ -381,12 +324,5 @@ function student_login($request)
  */
 function student_logout()
 {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-
-    // Clear student session
-    unset($_SESSION['school_management_student_id']);
-
-    return array('success' => true, 'message' => 'Logged out successfully');
+    return StudentSessionManager::logout();
 }
