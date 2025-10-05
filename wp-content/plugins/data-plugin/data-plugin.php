@@ -68,6 +68,7 @@ function bb_data_plugin_admin_assets($hook)
         'batch_import_nonce' => wp_create_nonce('bb_data_batch_import'),
         'student_export_nonce' => wp_create_nonce('bb_data_student_export'),
         'student_batch_import_nonce' => wp_create_nonce('bb_data_student_batch_import'),
+        'get_schools_nonce' => wp_create_nonce('bb_data_get_schools'),
         'ajax_url' => admin_url('admin-ajax.php')
     ));
 }
@@ -97,3 +98,39 @@ add_action('wp_ajax_import_json_data_posts', 'bb_data_plugin_import_json_posts')
 add_action('wp_ajax_export_student_csv_data', 'bb_data_plugin_export_student_csv');
 add_action('wp_ajax_init_student_batch_csv_import', 'bb_data_plugin_init_student_batch_import');
 add_action('wp_ajax_process_student_batch_csv_import', 'bb_data_plugin_process_student_batch');
+
+// AJAX handler for fetching schools
+add_action('wp_ajax_get_schools_for_dropdown', 'bb_data_plugin_get_schools_for_dropdown');
+
+/**
+ * Get schools for dropdown selection
+ */
+function bb_data_plugin_get_schools_for_dropdown()
+{
+    // Verify nonce for security
+    if (!wp_verify_nonce($_POST['bb_data_nonce'], 'bb_data_get_schools')) {
+        wp_die(json_encode(['status' => 'error', 'message' => 'Security check failed']));
+    }
+
+    // Get all school posts
+    $schools = get_posts(array(
+        'post_type' => 'school',
+        'numberposts' => -1,
+        'post_status' => 'publish',
+        'orderby' => 'title',
+        'order' => 'ASC'
+    ));
+
+    $school_options = array();
+    foreach ($schools as $school) {
+        $school_options[] = array(
+            'value' => $school->post_title,
+            'text' => $school->post_title
+        );
+    }
+
+    wp_die(json_encode([
+        'status' => 'success',
+        'schools' => $school_options
+    ]));
+}

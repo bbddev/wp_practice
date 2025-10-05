@@ -177,6 +177,12 @@ function bb_data_plugin_posts_admin_page()
                             <small style="color: #666; font-style: italic;">CSV Format: student_username,
                                 student_password, student_link, student_image</small>
                         </div>
+                        <div id="select-student-of">
+                            <label for="student-of-dropdown" class="center-label">Khối</label>
+                            <select id="student-of-dropdown" class="center-select">
+                                <option value="">-- Chọn --</option>
+                            </select>
+                        </div>
 
                         <div class="form-group" style="margin-bottom: 15px; margin-top: 30px;">
                             <input type="button" id="importStudentCsvBtn" class="btn btn-primary" value="Import Student CSV"

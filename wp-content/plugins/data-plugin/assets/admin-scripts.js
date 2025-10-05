@@ -80,7 +80,7 @@ function switchImportType(type) {
   var generalTab = document.getElementById("generalTab");
   var studentTab = document.getElementById("studentTab");
 
-  console.log("🚀 ~ switchImportType ~ type:", type)
+  console.log("🚀 ~ switchImportType ~ type:", type);
   if (type === "general") {
     generalSection.style.display = "block";
     studentSection.style.display = "none";
@@ -91,6 +91,9 @@ function switchImportType(type) {
     studentSection.style.display = "block";
     generalTab.classList.remove("nav-tab-active");
     studentTab.classList.add("nav-tab-active");
+
+    // Load schools when switching to student tab
+    loadSchoolsForDropdown();
   }
 }
 
@@ -544,9 +547,16 @@ function startStudentBatchImport() {
 
   var fileInput = document.getElementById("student_file");
   var file = fileInput.files[0];
+  var studentOfDropdown = document.getElementById("student-of-dropdown");
+  var studentOf = studentOfDropdown ? studentOfDropdown.value : "";
 
   if (!file) {
     showNotice("Please select a CSV file first.", "warning");
+    return;
+  }
+
+  if (!studentOf) {
+    showNotice("Please select a school (Khối) first.", "warning");
     return;
   }
 
@@ -567,6 +577,7 @@ function startStudentBatchImport() {
   formData.append("action", "init_student_batch_csv_import");
   formData.append("bb_data_nonce", bb_data_ajax.student_batch_import_nonce);
   formData.append("student_file", file);
+  formData.append("student_of", studentOf);
 
   var xhr = new XMLHttpRequest();
   xhr.open("POST", bb_data_ajax.ajax_url, true);
@@ -739,9 +750,59 @@ function handleStudentImportError(message) {
 }
 
 /**
+ * Load schools for dropdown
+ */
+function loadSchoolsForDropdown() {
+  var dropdown = document.getElementById("student-of-dropdown");
+  if (!dropdown) {
+    return;
+  }
+
+  var formData = new FormData();
+  formData.append("action", "get_schools_for_dropdown");
+  formData.append("bb_data_nonce", bb_data_ajax.get_schools_nonce);
+
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", bb_data_ajax.ajax_url, true);
+
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      try {
+        var response = JSON.parse(xhr.responseText);
+        if (response.status === "success") {
+          // Clear existing options except the default one
+          dropdown.innerHTML = '<option value="">-- Chọn --</option>';
+
+          // Add school options
+          response.schools.forEach(function (school) {
+            var option = document.createElement("option");
+            option.value = school.value;
+            option.textContent = school.text;
+            dropdown.appendChild(option);
+          });
+        } else {
+          console.error("Failed to load schools:", response.message);
+        }
+      } catch (e) {
+        console.error("Failed to parse schools response:", e);
+      }
+    }
+  };
+
+  xhr.onerror = function () {
+    console.error("Failed to load schools");
+  };
+
+  xhr.send(formData);
+}
+
+/**
  * Initialize admin scripts when document is ready
  */
 document.addEventListener("DOMContentLoaded", function () {
+  // Load schools for dropdown when page loads
+  loadSchoolsForDropdown();
+
   // Add file validation to file inputs
   var csvFileInput = document.getElementById("file");
   if (csvFileInput) {

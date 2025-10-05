@@ -102,6 +102,9 @@ function bb_data_plugin_init_student_batch_import()
     $batchSize = $totalRecords > 1000 ? 25 : ($totalRecords > 500 ? 50 : 100);
     $totalBatches = ceil($totalRecords / $batchSize);
 
+    // Get selected school value
+    $studentOf = isset($_POST['student_of']) ? sanitize_text_field($_POST['student_of']) : '';
+
     // Store data in session for batch processing
     $sessionKey = 'bb_student_batch_import_' . uniqid();
     $_SESSION[$sessionKey] = array(
@@ -111,6 +114,7 @@ function bb_data_plugin_init_student_batch_import()
         'total_batches' => $totalBatches,
         'current_batch' => 0,
         'processed_records' => 0,
+        'student_of' => $studentOf,
         'counters' => array(
             'imported' => 0,
             'updated' => 0,
@@ -149,6 +153,7 @@ function bb_data_plugin_process_student_batch()
     $csvData = $sessionData['csv_data'];
     $batchSize = $sessionData['batch_size'];
     $counters = $sessionData['counters'];
+    $studentOf = $sessionData['student_of'];
 
     // Calculate batch range
     $startIndex = $batchNumber * $batchSize;
@@ -157,7 +162,7 @@ function bb_data_plugin_process_student_batch()
     // Process batch
     for ($i = $startIndex; $i < $endIndex; $i++) {
         if (isset($csvData[$i])) {
-            bb_data_process_student_csv_line($csvData[$i]['data'], $counters);
+            bb_data_process_student_csv_line($csvData[$i]['data'], $counters, $studentOf);
         }
     }
 
@@ -186,7 +191,7 @@ function bb_data_plugin_process_student_batch()
 /**
  * Process single student CSV line
  */
-function bb_data_process_student_csv_line($line, &$counters)
+function bb_data_process_student_csv_line($line, &$counters, $studentOf = '')
 {
     if (count($line) < 1) {
         $counters['skipped']++;
@@ -220,7 +225,7 @@ function bb_data_process_student_csv_line($line, &$counters)
     if ($existing_post) {
         // Update existing student
         $post_id = $existing_post[0]->ID;
-        bb_data_update_student_meta($post_id, $username, $password, $link, $image);
+        bb_data_update_student_meta($post_id, $username, $password, $link, $image, $studentOf);
         $counters['updated']++;
     } else {
         // Create new student
@@ -231,7 +236,7 @@ function bb_data_process_student_csv_line($line, &$counters)
         ));
 
         if ($post_id) {
-            bb_data_update_student_meta($post_id, $username, $password, $link, $image);
+            bb_data_update_student_meta($post_id, $username, $password, $link, $image, $studentOf);
             $counters['created']++;
         } else {
             $counters['skipped']++;
@@ -244,7 +249,7 @@ function bb_data_process_student_csv_line($line, &$counters)
 /**
  * Update student meta fields
  */
-function bb_data_update_student_meta($post_id, $username, $password, $link, $image)
+function bb_data_update_student_meta($post_id, $username, $password, $link, $image, $studentOf = '')
 {
     update_post_meta($post_id, 'student_username', $username);
     if (!empty($password)) {
@@ -255,5 +260,8 @@ function bb_data_update_student_meta($post_id, $username, $password, $link, $ima
     }
     if (!empty($image)) {
         update_post_meta($post_id, 'student_image', $image);
+    }
+    if (!empty($studentOf)) {
+        update_post_meta($post_id, 'student_of', $studentOf);
     }
 }

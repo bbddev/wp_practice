@@ -36,7 +36,7 @@ function render_student_meta_box($post)
 
     // Lấy danh sách tất cả các lớp học
     $classes = get_posts(array(
-        'post_type' => 'class',
+        'post_type' => 'school',
         'numberposts' => -1,
         'post_status' => 'publish'
     ));
@@ -63,7 +63,7 @@ function render_student_meta_box($post)
         </select>
     </p>
     <p>
-        <label for="student_link">Student home:</label>
+        <label for="student_link">Student home link:</label>
         <input type="text" id="student_link" name="student_link" value="<?php echo esc_attr($student_link); ?>"
             style="width: 100%;" />
     </p>
