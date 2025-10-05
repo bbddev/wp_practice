@@ -20,6 +20,7 @@ require_once BB_DATA_PLUGIN_PATH . 'includes/templates/admin-page.php';
 require_once BB_DATA_PLUGIN_PATH . 'includes/csv-handler.php';
 require_once BB_DATA_PLUGIN_PATH . 'includes/json-handler.php';
 require_once BB_DATA_PLUGIN_PATH . 'includes/admin-columns.php';
+require_once BB_DATA_PLUGIN_PATH . 'includes/student-csv-handler.php';
 
 /**
  * Initialize plugin
@@ -56,7 +57,7 @@ function bb_data_plugin_admin_assets($hook)
         'bb-data-admin-js',
         BB_DATA_PLUGIN_URL . 'assets/admin-scripts.js',
         array('jquery'),
-        '2.3',
+        '2.4',
         true
     );
 
@@ -65,6 +66,8 @@ function bb_data_plugin_admin_assets($hook)
         'export_nonce' => wp_create_nonce('bb_data_export'),
         'export_json_nonce' => wp_create_nonce('bb_data_export_json'),
         'batch_import_nonce' => wp_create_nonce('bb_data_batch_import'),
+        'student_export_nonce' => wp_create_nonce('bb_data_student_export'),
+        'student_batch_import_nonce' => wp_create_nonce('bb_data_student_batch_import'),
         'ajax_url' => admin_url('admin-ajax.php')
     ));
 }
@@ -89,3 +92,8 @@ add_action('wp_ajax_process_batch_csv_import', 'bb_data_plugin_process_batch');
 // AJAX handlers for JSON
 add_action('wp_ajax_export_json_data_posts', 'bb_data_plugin_export_json_posts');
 add_action('wp_ajax_import_json_data_posts', 'bb_data_plugin_import_json_posts');
+
+// AJAX handlers for Student CSV
+add_action('wp_ajax_export_student_csv_data', 'bb_data_plugin_export_student_csv');
+add_action('wp_ajax_init_student_batch_csv_import', 'bb_data_plugin_init_student_batch_import');
+add_action('wp_ajax_process_student_batch_csv_import', 'bb_data_plugin_process_student_batch');

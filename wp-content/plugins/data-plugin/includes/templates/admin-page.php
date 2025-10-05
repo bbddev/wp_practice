@@ -43,67 +43,67 @@ function bb_data_plugin_posts_admin_page()
     <div class="wrap">
         <h1>Import Data</h1>
 
-        <?php if (!empty($statusMsg)) { ?>
-            <!-- <div class="alert alert-<?php echo esc_attr($status); ?>"
-                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
-                <div class="status-message">
-                    <?php echo esc_html($statusMsg); ?>
-                </div>
-                <div class="view-links" style="white-space: nowrap;">
-                    <a href="edit.php?post_type=entity" style="font-style: italic;">View Lesson List</a> -
-                    <a href="edit.php?post_type=class" style="font-style: italic;">View Class List</a> -
-                    <a href="edit.php?post_type=school" style="font-style: italic;">View School List</a>
-                </div>
-            </div> -->
-        <?php } ?>
-
         <div class="row">
-            <!-- CSV file upload form -->
-            <div class="col-md-12" id="importFrm"
-                style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+            <!-- Import Options Tabs -->
+            <div class="nav-tab-wrapper" style="margin-bottom: 20px;">
+                <a href="javascript:void(0);" class="nav-tab nav-tab-active" onclick="switchImportType('general')"
+                    id="generalTab">
+                    General Data Import
+                </a>
+                <a href="javascript:void(0);" class="nav-tab" onclick="switchImportType('student')" id="studentTab">
+                    Student Import
+                </a>
+            </div>
 
-                <!-- Button row with responsive layout -->
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                    <!-- Left side - Import buttons -->
-                    <div style="display: flex; gap: 10px;">
-                        <a href="javascript:void(0);" class="button-primary" onclick="formToggle('csvForm')"
-                            id="toggleCsvBtn">Import CSV</a>
-                        <a href="javascript:void(0);" class="button-secondary" onclick="formToggle('jsonForm')"
-                            id="importJsonBtn">Import JSON</a>
-                    </div>
+            <!-- General Data Import Section -->
+            <div id="generalImportSection" class="import-section">
+                <div class="col-md-12" id="importFrm"
+                    style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
 
-                    <!-- Right side - Action buttons -->
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <a href="javascript:void(0);" class="btn" onclick="downloadSample()">Download CSV
-                            Sample</a>
-                        <a href="javascript:void(0);" class="btn" onclick="downloadJsonSample()">Download JSON
-                            Sample</a>
-                        <a href="javascript:void(0);" class="button" onclick="exportData()">Export CSV</a>
-                        <a href="javascript:void(0);" class="button" onclick="exportDataJson()">Export JSON</a>
-                    </div>
-                </div>
-                <div id="csvForm" style="display:block;">
-                    <form id="csvImportForm" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
-                        enctype="multipart/form-data">
-                        <input type="hidden" name="action" value="import_csv_data_posts">
-                        <?php wp_nonce_field('bb_data_import', 'bb_data_nonce'); ?>
+                    <h3 style="margin-top: 0;">Import Schools, Classes & Entities</h3>
 
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label for="file" style="display: block; margin-bottom: 5px; font-weight: bold;">Choose CSV
-                                File:</label>
-                            <input type="file" name="file" id="file" accept=".csv" class="form-control" required
-                                style="width: 100%; padding: 8px;">
+                    <!-- Button row with responsive layout -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <!-- Left side - Import buttons -->
+                        <div style="display: flex; gap: 10px;">
+                            <a href="javascript:void(0);" class="button-primary" onclick="formToggle('csvForm')"
+                                id="toggleCsvBtn">Import CSV</a>
+                            <a href="javascript:void(0);" class="button-secondary" onclick="formToggle('jsonForm')"
+                                id="importJsonBtn">Import JSON</a>
                         </div>
 
-                        <div class="form-group" style="margin-bottom: 15px; margin-top: 30px;">
-                            <input type="button" id="importCsvBtn" class="btn btn-primary" value="Import CSV"
-                                style="padding: 10px 20px;">
-                            <!-- <input type="submit" name="importSubmit" class="btn btn-secondary" value="Import CSV (Legacy)"
+                        <!-- Right side - Action buttons -->
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <a href="javascript:void(0);" class="btn" onclick="downloadSample()">Download CSV
+                                Sample</a>
+                            <a href="javascript:void(0);" class="btn" onclick="downloadJsonSample()">Download JSON
+                                Sample</a>
+                            <a href="javascript:void(0);" class="button" onclick="exportData()">Export CSV</a>
+                            <a href="javascript:void(0);" class="button" onclick="exportDataJson()">Export JSON</a>
+                        </div>
+                    </div>
+                    <div id="csvForm" style="display:block;">
+                        <form id="csvImportForm" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
+                            enctype="multipart/form-data">
+                            <input type="hidden" name="action" value="import_csv_data_posts">
+                            <?php wp_nonce_field('bb_data_import', 'bb_data_nonce'); ?>
+
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label for="file" style="display: block; margin-bottom: 5px; font-weight: bold;">Choose CSV
+                                    File:</label>
+                                <input type="file" name="file" id="file" accept=".csv" class="form-control" required
+                                    style="width: 100%; padding: 8px;">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 15px; margin-top: 30px;">
+                                <input type="button" id="importCsvBtn" class="btn btn-primary" value="Import CSV"
+                                    style="padding: 10px 20px;">
+                                <!-- <input type="submit" name="importSubmit" class="btn btn-secondary" value="Import CSV (Legacy)"
                                 style="padding: 10px 20px; margin-left: 10px;"> -->
-                        </div>
-                    </form>
-                </div>
+                            </div>
+                        </form>
+                    </div>
 
                     <!-- Progress bar container (hidden by default) -->
                     <div id="progressContainer" style="display: none; margin-bottom: 20px;">
@@ -120,29 +120,87 @@ function bb_data_plugin_posts_admin_page()
                             <strong id="progressText">Đang chuẩn bị import...</strong>
                         </div>
                     </div>
-                <div id="jsonForm" style="display:none;">
-                    <!-- JSON file upload form -->
-                    <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
-                        enctype="multipart/form-data">
-                        <input type="hidden" name="action" value="import_json_data_posts">
-                        <?php wp_nonce_field('bb_data_import_json', 'bb_data_nonce'); ?>
+                    <div id="jsonForm" style="display:none;">
+                        <!-- JSON file upload form -->
+                        <form action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>" method="post"
+                            enctype="multipart/form-data">
+                            <input type="hidden" name="action" value="import_json_data_posts">
+                            <?php wp_nonce_field('bb_data_import_json', 'bb_data_nonce'); ?>
+
+                            <div class="form-group" style="margin-bottom: 15px;">
+                                <label for="json_file" style="display: block; margin-bottom: 5px; font-weight: bold;">Choose
+                                    JSON
+                                    File:</label>
+                                <input type="file" name="json_file" id="json_file" accept=".json" class="form-control"
+                                    required style="width: 100%; padding: 8px;">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 15px; margin-top: 30px;">
+                                <input type="submit" name="importJsonSubmit" class="btn btn-primary" value="Import JSON"
+                                    style="padding: 10px 20px;">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Import Section -->
+            <div id="studentImportSection" class="import-section" style="display: none;">
+                <div class="col-md-12" id="studentImportFrm"
+                    style="background: #f0f8ff; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+
+                    <h3 style="margin-top: 0;">Import Students</h3>
+
+                    <!-- Student Action buttons -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <a href="javascript:void(0);" class="btn" onclick="downloadStudentSample()">Download Student
+                                CSV Sample</a>
+                            <a href="javascript:void(0);" class="button" onclick="exportStudentData()">Export Student
+                                CSV</a>
+                        </div>
+                    </div>
+
+                    <!-- Student CSV Import Form -->
+                    <form id="studentCsvImportForm" action="<?php echo esc_url(admin_url('admin-ajax.php')); ?>"
+                        method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="action" value="init_student_batch_csv_import">
+                        <?php wp_nonce_field('bb_data_student_batch_import', 'bb_data_nonce'); ?>
 
                         <div class="form-group" style="margin-bottom: 15px;">
-                            <label for="json_file" style="display: block; margin-bottom: 5px; font-weight: bold;">Choose
-                                JSON
+                            <label for="student_file" style="display: block; margin-bottom: 5px; font-weight: bold;">Choose
+                                Student CSV
                                 File:</label>
-                            <input type="file" name="json_file" id="json_file" accept=".json" class="form-control" required
-                                style="width: 100%; padding: 8px;">
+                            <input type="file" name="student_file" id="student_file" accept=".csv" class="form-control"
+                                required style="width: 100%; padding: 8px;">
+                            <small style="color: #666; font-style: italic;">CSV Format: student_username,
+                                student_password, student_link, student_image</small>
                         </div>
 
                         <div class="form-group" style="margin-bottom: 15px; margin-top: 30px;">
-                            <input type="submit" name="importJsonSubmit" class="btn btn-primary" value="Import JSON"
+                            <input type="button" id="importStudentCsvBtn" class="btn btn-primary" value="Import Student CSV"
                                 style="padding: 10px 20px;">
                         </div>
                     </form>
+
+                    <!-- Student Progress bar container (hidden by default) -->
+                    <div id="studentProgressContainer" style="display: none; margin-bottom: 20px;">
+                        <div
+                            style="width: 100%; background-color: #e0e0e0; border-radius: 5px; height: 25px; position: relative;">
+                            <div id="studentProgressBar"
+                                style="width: 0%; background-color: #2196F3; height: 100%; border-radius: 5px; transition: width 0.3s ease;">
+                            </div>
+                            <div id="studentProgressPercent"
+                                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: bold; color: #333;">
+                                0%</div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <strong id="studentProgressText">Đang chuẩn bị import students...</strong>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <?php
+        <?php
 }

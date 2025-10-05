@@ -72,6 +72,29 @@ function formToggle(ID) {
 }
 
 /**
+ * Switch between import types
+ */
+function switchImportType(type) {
+  var generalSection = document.getElementById("generalImportSection");
+  var studentSection = document.getElementById("studentImportSection");
+  var generalTab = document.getElementById("generalTab");
+  var studentTab = document.getElementById("studentTab");
+
+  console.log("🚀 ~ switchImportType ~ type:", type)
+  if (type === "general") {
+    generalSection.style.display = "block";
+    studentSection.style.display = "none";
+    generalTab.classList.add("nav-tab-active");
+    studentTab.classList.remove("nav-tab-active");
+  } else if (type === "student") {
+    generalSection.style.display = "none";
+    studentSection.style.display = "block";
+    generalTab.classList.remove("nav-tab-active");
+    studentTab.classList.add("nav-tab-active");
+  }
+}
+
+/**
  * Download CSV sample file
  */
 function downloadSample() {
@@ -195,6 +218,55 @@ function exportDataJson() {
   nonceInput.type = "hidden";
   nonceInput.name = "bb_data_nonce";
   nonceInput.value = bb_data_ajax.export_json_nonce;
+  form.appendChild(nonceInput);
+
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+}
+
+/**
+ * Download Student CSV sample file
+ */
+function downloadStudentSample() {
+  var csvContent =
+    "student_username,student_password,student_link,student_image\n";
+  csvContent +=
+    "student001,pass123,https://example.com/student1,https://example.com/image1.jpg\n";
+  csvContent +=
+    "student002,pass456,https://example.com/student2,https://example.com/image2.jpg\n";
+  csvContent +=
+    "student003,pass789,https://example.com/student3,https://example.com/image3.jpg\n";
+
+  var blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  var link = document.createElement("a");
+  var url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", "sample-students.csv");
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+/**
+ * Export student data as CSV
+ */
+function exportStudentData() {
+  var form = document.createElement("form");
+  form.method = "post";
+  form.action = bb_data_ajax.ajax_url;
+
+  var actionInput = document.createElement("input");
+  actionInput.type = "hidden";
+  actionInput.name = "action";
+  actionInput.value = "export_student_csv_data";
+  form.appendChild(actionInput);
+
+  var nonceInput = document.createElement("input");
+  nonceInput.type = "hidden";
+  nonceInput.name = "bb_data_nonce";
+  nonceInput.value = bb_data_ajax.student_export_nonce;
   form.appendChild(nonceInput);
 
   document.body.appendChild(form);
@@ -459,6 +531,214 @@ function handleImportError(message) {
 }
 
 /**
+ * Start student batch CSV import
+ */
+function startStudentBatchImport() {
+  if (typeof bb_data_ajax === "undefined") {
+    showNotice(
+      "Error: bb_data_ajax is not defined. Please refresh the page.",
+      "error"
+    );
+    return;
+  }
+
+  var fileInput = document.getElementById("student_file");
+  var file = fileInput.files[0];
+
+  if (!file) {
+    showNotice("Please select a CSV file first.", "warning");
+    return;
+  }
+
+  if (!validateCsvFile(fileInput)) {
+    return;
+  }
+
+  var progressContainer = document.getElementById("studentProgressContainer");
+  var importBtn = document.getElementById("importStudentCsvBtn");
+
+  progressContainer.style.display = "block";
+  importBtn.disabled = true;
+  importBtn.value = "Importing Students...";
+
+  updateStudentProgress(0, "Đang khởi tạo import students...", 0, 0);
+
+  var formData = new FormData();
+  formData.append("action", "init_student_batch_csv_import");
+  formData.append("bb_data_nonce", bb_data_ajax.student_batch_import_nonce);
+  formData.append("student_file", file);
+
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", bb_data_ajax.ajax_url, true);
+
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      try {
+        var response = JSON.parse(xhr.responseText);
+        if (response.status === "success") {
+          processStudentBatches(
+            response.session_key,
+            response.total_records,
+            response.total_batches,
+            response.batch_size
+          );
+        } else {
+          handleStudentImportError(
+            "Initialization failed: " + response.message
+          );
+        }
+      } catch (e) {
+        handleStudentImportError(
+          "Invalid server response during initialization"
+        );
+      }
+    } else {
+      handleStudentImportError(
+        "Server error during initialization: " + xhr.status
+      );
+    }
+  };
+
+  xhr.onerror = function () {
+    handleStudentImportError("Network error during initialization");
+  };
+
+  xhr.send(formData);
+}
+
+/**
+ * Process student batches sequentially
+ */
+function processStudentBatches(
+  sessionKey,
+  totalRecords,
+  totalBatches,
+  batchSize
+) {
+  var currentBatch = 0;
+  var totalProcessed = 0;
+
+  function processSingleStudentBatch() {
+    updateStudentProgress(
+      Math.round((currentBatch / totalBatches) * 100),
+      `Đã xử lý ${totalProcessed}/${totalRecords} students...`,
+      totalProcessed,
+      totalRecords
+    );
+
+    var formData = new FormData();
+    formData.append("action", "process_student_batch_csv_import");
+    formData.append("bb_data_nonce", bb_data_ajax.student_batch_import_nonce);
+    formData.append("session_key", sessionKey);
+    formData.append("batch_number", currentBatch);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", bb_data_ajax.ajax_url, true);
+
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        try {
+          var response = JSON.parse(xhr.responseText);
+          if (response.status === "success") {
+            currentBatch++;
+            totalProcessed = response.processed_records;
+
+            updateStudentProgress(
+              response.progress_percent,
+              `Đã xử lý ${totalProcessed}/${totalRecords} students...`,
+              totalProcessed,
+              totalRecords
+            );
+
+            if (response.is_complete) {
+              completeStudentImport(response.counters);
+            } else {
+              setTimeout(processSingleStudentBatch, 100);
+            }
+          } else {
+            handleStudentImportError(
+              "Batch processing failed: " + response.message
+            );
+          }
+        } catch (e) {
+          handleStudentImportError(
+            "Invalid server response during batch processing"
+          );
+        }
+      } else {
+        handleStudentImportError(
+          "Server error during batch processing: " + xhr.status
+        );
+      }
+    };
+
+    xhr.onerror = function () {
+      handleStudentImportError("Network error during batch processing");
+    };
+
+    xhr.send(formData);
+  }
+
+  processSingleStudentBatch();
+}
+
+/**
+ * Update student progress display
+ */
+function updateStudentProgress(percent, text, processed, total) {
+  var progressBar = document.getElementById("studentProgressBar");
+  var progressPercent = document.getElementById("studentProgressPercent");
+  var progressText = document.getElementById("studentProgressText");
+
+  if (progressBar) progressBar.style.width = percent + "%";
+  if (progressPercent) progressPercent.textContent = Math.round(percent) + "%";
+  if (progressText) progressText.textContent = text;
+}
+
+/**
+ * Complete student import process
+ */
+function completeStudentImport(counters) {
+  updateStudentProgress(100, "Student import hoàn tất!", 0, 0);
+
+  var importBtn = document.getElementById("importStudentCsvBtn");
+  importBtn.disabled = false;
+  importBtn.value = "Import Student CSV";
+
+  var message =
+    `Student import hoàn tất! Tổng cộng: ${counters.imported} students đã import thành công ` +
+    `(Tạo mới: ${counters.created}, Cập nhật: ${counters.updated}, Bỏ qua: ${counters.skipped}).`;
+
+  showNotice(message, "success");
+
+  setTimeout(function () {
+    document.getElementById("studentProgressContainer").style.display = "none";
+  }, 3000);
+
+  setTimeout(function () {
+    var successNotice = document.querySelector(".bb-notice.updated p");
+    if (successNotice) {
+      successNotice.innerHTML =
+        message +
+        "<br><br>" +
+        '<a href="edit.php?post_type=student">View Student List</a>';
+    }
+  }, 500);
+}
+
+/**
+ * Handle student import errors
+ */
+function handleStudentImportError(message) {
+  var importBtn = document.getElementById("importStudentCsvBtn");
+  importBtn.disabled = false;
+  importBtn.value = "Import Student CSV";
+
+  document.getElementById("studentProgressContainer").style.display = "none";
+  showNotice("Student import error: " + message, "error");
+}
+
+/**
  * Initialize admin scripts when document is ready
  */
 document.addEventListener("DOMContentLoaded", function () {
@@ -482,6 +762,22 @@ document.addEventListener("DOMContentLoaded", function () {
   if (batchImportBtn) {
     batchImportBtn.addEventListener("click", function () {
       startBatchImport();
+    });
+  }
+
+  // Add student batch import button click handler
+  var studentBatchImportBtn = document.getElementById("importStudentCsvBtn");
+  if (studentBatchImportBtn) {
+    studentBatchImportBtn.addEventListener("click", function () {
+      startStudentBatchImport();
+    });
+  }
+
+  // Add student file validation
+  var studentFileInput = document.getElementById("student_file");
+  if (studentFileInput) {
+    studentFileInput.addEventListener("change", function () {
+      validateCsvFile(this);
     });
   }
 });
