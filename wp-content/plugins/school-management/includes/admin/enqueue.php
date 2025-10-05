@@ -35,7 +35,6 @@ function enqueue_school_management_frontend_scripts()
         '5.15.4'
     );
 
-    // Use file modification time as version to prevent caching issues
     $css_version = filemtime(SCHOOLPLUGIN_PATH . '/assets/style/school-management.css');
 
     wp_enqueue_style(
@@ -45,7 +44,6 @@ function enqueue_school_management_frontend_scripts()
         $css_version
     );
 
-    // Use file modification time as version to prevent caching issues for custom modal CSS
     $custom_modal_css_version = filemtime(SCHOOLPLUGIN_PATH . '/assets/style/custom-modal.css');
 
     wp_enqueue_style(
@@ -55,7 +53,6 @@ function enqueue_school_management_frontend_scripts()
         $custom_modal_css_version
     );
 
-    // Enqueue modular JavaScript files
     $js_modules = array(
         'utils' => '/assets/js/modules/utils.js',
         'pagination' => '/assets/js/modules/pagination.js',
@@ -81,7 +78,6 @@ function enqueue_school_management_frontend_scripts()
             true
         );
 
-        // Each subsequent module depends on the previous ones
         $previous_handle = array('school-management-' . $handle);
     }
 

@@ -24,7 +24,6 @@ function add_student_meta_boxes()
  */
 function render_student_meta_box($post)
 {
-    // Thêm nonce để bảo mật
     wp_nonce_field('save_student_meta', 'student_meta_nonce');
 
     $student_username = get_post_meta($post->ID, 'student_username', true);
@@ -33,8 +32,6 @@ function render_student_meta_box($post)
     $student_link = get_post_meta($post->ID, 'student_link', true); // quản lý thông tin học tập, điểm số
     $student_image = get_post_meta($post->ID, 'student_image', true); // Hình ảnh học sinh
 
-
-    // Lấy danh sách tất cả các lớp học
     $classes = get_posts(array(
         'post_type' => 'school',
         'numberposts' => -1,
