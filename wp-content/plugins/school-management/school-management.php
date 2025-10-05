@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: School Management
-Description: A plugin to test.
+Description: School management plugin.
 Version: 1.0
 Author: Binh Vo
 */
