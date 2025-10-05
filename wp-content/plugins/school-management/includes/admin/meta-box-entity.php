@@ -42,7 +42,7 @@ function render_entity_meta_box($post)
     ));
 
     ?>
-        <p>
+        <!-- <p>
             <label for="entity_username">Username:</label>
             <input type="text" id="entity_username" name="entity_username" value="<?php echo esc_attr($entity_username); ?>"
                 style="width: 100%;" />
@@ -51,7 +51,7 @@ function render_entity_meta_box($post)
             <label for="entity_password">Password:</label>
             <input type="text" id="lesson_password" name="lesson_password" value="<?php echo esc_attr($lesson_password); ?>"
                 style="width: 100%;" />
-        <p>
+        <p> -->
         <label for="entity_class">Thuộc lớp:</label>
         <select id="entity_class" name="entity_class" style="width: 100%;">
             <option value="">-- Chọn lớp --</option>
@@ -72,7 +72,7 @@ function render_entity_meta_box($post)
         <label for="entity_image">Hình:</label>
         <input type="text" id="entity_image" name="entity_image" value="<?php echo esc_attr($entity_image); ?>"
             style="width: 70%;" hidden />
-        <button type="button" id="upload_image_button" class="button">Chọn hình</button>
+        <button type="button" id="upload_image_button" class="button">Chọn hình bài học</button>
         <button type="button" id="remove_image_button" class="button" style="color: red;">Xóa ảnh</button>
     </p>
 

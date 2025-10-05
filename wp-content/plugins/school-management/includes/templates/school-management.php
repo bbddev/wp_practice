@@ -7,9 +7,9 @@
     </div>
 
     <div id="select-class" style="display: none;">
-        <label for="class-dropdown" style="text-align: center;">Chọn lớp:</label>
+        <label for="class-dropdown" style="text-align: center;">Chọn danh sách bài học:</label>
         <select id="class-dropdown" style="margin: auto;">
-            <option value="">-- Chọn lớp --</option>
+            <option value="">-- Chọn --</option>
         </select>
     </div>
 

@@ -53,3 +53,31 @@ function save_class_meta($post_id)
         update_post_meta($post_id, 'Thuộc Trường', sanitize_text_field($_POST['class_school']));
     }
 }
+function save_student_meta($post_id)
+{
+    if (!isset($_POST['student_meta_nonce']) || !wp_verify_nonce($_POST['student_meta_nonce'], 'save_student_meta')) {
+        return;
+    }
+
+    if (get_post_type($post_id) !== 'student') {
+        return;
+    }
+    if (isset($_POST['student_username'])) {
+        update_post_meta($post_id, 'student_username', sanitize_text_field($_POST['student_username']));
+    }
+    if (isset($_POST['student_password'])) {
+        update_post_meta($post_id, 'student_password', sanitize_text_field($_POST['student_password']));
+    }
+
+    if (isset($_POST['student_of'])) {
+        update_post_meta($post_id, 'student_of', sanitize_text_field($_POST['student_of']));
+    }
+
+    if (isset($_POST['student_link'])) {
+        update_post_meta($post_id, 'student_link', esc_url_raw($_POST['student_link']));
+    }
+
+    if (isset($_POST['student_image'])) {
+        update_post_meta($post_id, 'student_image', sanitize_text_field($_POST['student_image']));
+    }
+}

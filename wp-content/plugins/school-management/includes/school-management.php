@@ -7,12 +7,14 @@ if (!defined('ABSPATH')) {
 // Include admin files
 require_once __DIR__ . '/admin/meta-box-class.php';
 require_once __DIR__ . '/admin/meta-box-entity.php';
+require_once __DIR__ . '/admin/meta-box-student.php';
 require_once __DIR__ . '/admin/enqueue.php';
 
 // Include post types
 require_once __DIR__ . '/post-types/register-school.php';
 require_once __DIR__ . '/post-types/register-class.php';
 require_once __DIR__ . '/post-types/register-entity.php';
+require_once __DIR__ . '/post-types/register-student.php';
 
 // Include REST API
 require_once __DIR__ . '/rest/routes.php';
@@ -38,6 +40,10 @@ add_action('save_post', 'save_class_meta');
 
 add_action('admin_enqueue_scripts', 'enqueue_media_scripts');
 
+add_action('add_meta_boxes', 'add_student_meta_boxes');
+
+add_action('save_post', 'save_student_meta');
+
 /**
  * Create all post types
  */
@@ -46,4 +52,5 @@ function create_school_management_page()
     register_school_post_type();
     register_class_post_type();
     register_entity_post_type();
+    register_student_post_type();
 }

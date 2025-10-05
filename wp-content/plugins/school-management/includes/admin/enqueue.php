@@ -11,6 +11,9 @@ function enqueue_media_scripts($hook_suffix)
     if ('entity' === $post_type) {
         wp_enqueue_media();
         wp_enqueue_script('jquery');
+    } elseif ('student' === $post_type) {
+        wp_enqueue_media();
+        wp_enqueue_script('jquery');
     }
 }
 
