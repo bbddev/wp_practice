@@ -75,11 +75,11 @@ function formToggle(ID) {
  * Download CSV sample file
  */
 function downloadSample() {
-  var csvContent = "type,title,password,parent,link,image_url\n";
-  csvContent += 'school,"Khối 6","","","",""\n';
-  csvContent += 'class,"Lớp 6.1","password123","Khối 6","",""\n';
+  var csvContent = "type,title,password,parent,link,image_url,username\n";
+  csvContent += 'school,"Khối 6","","","","",""\n';
+  csvContent += 'class,"Lớp 6.1","password123","Khối 6","","",""\n';
   csvContent +=
-    'entity,"Hình 1","lesson123","Lớp 6.1","https://example.com","https://example.com/image.jpg"\n';
+    'entity,"Hình 1","lesson123","Lớp 6.1","https://example.com","https://example.com/image.jpg","user1"\n';
 
   var blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   var link = document.createElement("a");
@@ -130,6 +130,7 @@ function downloadJsonSample() {
         link: "https://example.com",
         image_url: "https://example.com/image.jpg",
         created_date: "2024-01-01 10:10:00",
+        username: "user1",
       },
     ],
   };
@@ -324,7 +325,7 @@ function processBatches(sessionKey, totalRecords, totalBatches, batchSize) {
     updateProgress(
       Math.round((currentBatch / totalBatches) * 100),
       // `Đang xử lý batch ${currentBatch + 1}/${totalBatches}...`,
-              `Đã xử lý ${totalProcessed}/${totalRecords} records...`,
+      `Đã xử lý ${totalProcessed}/${totalRecords} records...`,
 
       totalProcessed,
       totalRecords

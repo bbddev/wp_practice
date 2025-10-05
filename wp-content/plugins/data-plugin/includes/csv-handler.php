@@ -29,7 +29,7 @@ function bb_data_plugin_export_csv_posts()
     $output = fopen('php://output', 'w');
 
     // Add CSV headers
-    fputcsv($output, array('type', 'title', 'password', 'parent', 'link', 'image_url'));
+    fputcsv($output, array('type', 'title', 'password', 'parent', 'link', 'image_url', 'username'));
 
     // Export data
     bb_data_export_schools_to_csv($output, $schools);
@@ -243,7 +243,8 @@ function bb_data_export_schools_to_csv($output, $schools)
             '', // Schools don't have passwords
             '', // Schools don't have parents
             '', // Schools don't have links
-            ''  // Schools don't have images
+            '',  // Schools don't have images
+            ''  // Schools don't have usernames
         ));
     }
 }
@@ -263,7 +264,8 @@ function bb_data_export_classes_to_csv($output, $classes)
             $password,
             $parent,
             '', // Classes don't have links
-            ''  // Classes don't have images
+            '', // Classes don't have images
+            ''  // Classes don't have usernames
         ));
     }
 }
@@ -278,6 +280,7 @@ function bb_data_export_entities_to_csv($output, $entities)
         $parent = get_post_meta($entity->ID, 'Thuộc lớp', true);
         $link = get_post_meta($entity->ID, 'Link khi click', true);
         $image_url = get_post_meta($entity->ID, 'Hình', true);
+        $username = get_post_meta($entity->ID, 'Username', true);
 
         fputcsv($output, array(
             'entity',
@@ -285,7 +288,8 @@ function bb_data_export_entities_to_csv($output, $entities)
             $password,
             $parent,
             $link,
-            $image_url
+            $image_url,
+            $username
         ));
     }
 }

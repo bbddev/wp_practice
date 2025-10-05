@@ -138,6 +138,7 @@ function bb_data_format_entity_for_export($entity)
     $parent = get_post_meta($entity->ID, 'Thuộc lớp', true);
     $link = get_post_meta($entity->ID, 'Link khi click', true);
     $image_url = get_post_meta($entity->ID, 'Hình', true);
+    $username = get_post_meta($entity->ID, 'Username', true);
 
     return array(
         'id' => $entity->ID,
@@ -147,6 +148,7 @@ function bb_data_format_entity_for_export($entity)
         'parent_class' => $parent,
         'link' => $link,
         'image_url' => $image_url,
+        'username' => $username,
         'created_date' => $entity->post_date
     );
 }
@@ -385,5 +387,8 @@ function bb_data_update_entity_meta($post_id, $data)
     }
     if (!empty($data['image_url'])) {
         update_post_meta($post_id, 'Hình', esc_url($data['image_url']));
+    }
+    if (!empty($data['username'])) {
+        update_post_meta($post_id, 'Username', sanitize_text_field($data['username']));
     }
 }
