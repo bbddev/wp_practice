@@ -23,12 +23,12 @@
 
     <div id="entity-container" class="entity-container">
         <div class="row d-flex justify-content-between align-items-center mb-3">
-            <div class="col-auto">
+            <!-- <div class="col-auto">
                 <button class="btn btn-secondary" onclick="showSchoolSelection()">Back</button>
             </div>
             <div class="col text-center">
                 <h3 class="mb-0">Danh sách học sinh tham gia của <strong id="class-title"></strong>:</h3>
-            </div>
+            </div> -->
             <div class="col-auto">
                 <!-- Empty column for balance -->
             </div>
