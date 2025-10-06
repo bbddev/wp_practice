@@ -8,6 +8,7 @@ window.SchoolManagement.StudentLogin = {
     this.$ = $ || window.SchoolManagement.$ || jQuery;
     this.pendingCallback = null;
     this.bindEvents();
+    this.studentOf = "someone";
   },
 
   bindEvents: function () {
@@ -65,7 +66,7 @@ window.SchoolManagement.StudentLogin = {
    * Check if a student session exists; if yes run callback immediately. If not, show login modal and store callback.
    * @param {Function} callback - Function to call on successful session or after login
    */
-  checkSessionWithCallback: function (callback) {
+  checkSessionWithCallback: function (callback, schoolName) {
     const self = this;
     // Save callback
     this.pendingCallback = callback || null;
@@ -77,8 +78,17 @@ window.SchoolManagement.StudentLogin = {
       method: "GET",
       success: function (data) {
         if (data && data.logged_in) {
+          // Update studentOf first before any other operations
+          self.studentOf = data.student_of || null;
+
           // already logged in
-          self.updateLoginStatus(true, data.student_id, data.student_name);
+          self.updateLoginStatus(
+            true,
+            data.student_id,
+            data.student_name,
+            data.student_of
+          );
+
           if (typeof self.pendingCallback === "function") {
             self.pendingCallback();
             self.pendingCallback = null;
@@ -146,13 +156,18 @@ window.SchoolManagement.StudentLogin = {
         );
         if (data && data.success) {
           window.SchoolManagement.CustomModal.hideModal("studentLoginModal");
-          // self.updateLoginStatus(true, data.student_id, data.student_name);
-            window.SchoolManagement.StudentLogin.updateLoginStatus(
-              true,
-              data.student_id,
-              data.student_name
-            );
-          
+
+          // Update studentOf first before calling any callbacks
+          window.SchoolManagement.StudentLogin.studentOf =
+            data.student_of || null;
+
+          window.SchoolManagement.StudentLogin.updateLoginStatus(
+            true,
+            data.student_id,
+            data.student_name,
+            data.student_of
+          );
+
           if (
             typeof window.SchoolManagement.StudentLogin.pendingCallback ===
             "function"
@@ -210,10 +225,25 @@ window.SchoolManagement.StudentLogin = {
    * @param {number} studentId - Student ID (optional)
    * @param {string} studentName - Student name (optional)
    */
-  updateLoginStatus: function (isLoggedIn, studentId, studentName) {
+  updateLoginStatus: function (isLoggedIn, studentId, studentName, studentOf) {
     const statusDiv = document.getElementById("student-status");
     const studentNameEl = document.getElementById("student-name");
+    const studentOfEl = document.getElementById("student-of");
 
+    // Update studentOf property first
+    if (isLoggedIn && studentOf) {
+      this.studentOf = studentOf;
+    } else {
+      this.studentOf = null;
+    }
+
+    if (studentOfEl) {
+      if (isLoggedIn && studentOf) {
+        studentOfEl.textContent = "Khối: " + studentOf;
+      } else {
+        studentOfEl.textContent = "";
+      }
+    }
     if (isLoggedIn) {
       if (statusDiv) statusDiv.style.display = "flex";
       if (studentNameEl) {

@@ -19,7 +19,7 @@ window.SchoolManagement.SchoolClass = {
     const $ = this.$ || window.SchoolManagement.$ || jQuery;
 
     // Show school selection (menu navigation)
-    $("#select-school").show();
+    // $("#select-school").show();
 
     // Hide other containers
     $("#select-class").hide();
@@ -72,23 +72,62 @@ window.SchoolManagement.SchoolClass = {
     });
   },
 
+  checkStudentOf: function (schoolId, studentOf, callback) {
+    const self = this;
+
+    window.SchoolManagement.Utils.createAjaxRequest({
+      url:
+        schoolManagementAjax.apiUrl +
+        "school-management/v1/checkstudentof/" +
+        schoolId +
+        "/" +
+        encodeURIComponent(studentOf),
+      method: "GET",
+      success: function (data) {
+        const hasAccess = data && data.has_access;
+        if (callback && typeof callback === "function") {
+          callback(hasAccess);
+        }
+      },
+      error: function () {
+        console.error("Error checking student access to school");
+        if (callback && typeof callback === "function") {
+          callback(false); // Deny access on error
+        }
+      },
+    });
+  },
+
   handleSchoolChange: function (schoolId) {
+    const self = this;
     const $ = this.$;
-    if (schoolId) {
-      this.loadClasses(schoolId);
-      $("#select-class").show();
-    } else {
-      $("#select-class").hide();
-      $("#entity-container").hide();
-    }
+    const studentof = window.SchoolManagement.StudentLogin.studentOf;
+    console.log("🚀 ~ studentof:", studentof);
 
-    $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
-    $("#entity-grid").empty();
-    $("#pagination-container").hide();
+    // Check if student has access to this school
+    this.checkStudentOf(schoolId, studentof, function (hasAccess) {
+      if (!hasAccess) {
+        alert("Chọn sai Khối");
+        return;
+      }
 
-    if (window.SchoolManagement.Entity) {
-      window.SchoolManagement.Entity.reset();
-    }
+      // Student has access, proceed with loading classes
+      if (schoolId) {
+        self.loadClasses(schoolId);
+        $("#select-class").show();
+      } else {
+        $("#select-class").hide();
+        $("#entity-container").hide();
+      }
+
+      $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
+      $("#entity-grid").empty();
+      $("#pagination-container").hide();
+
+      if (window.SchoolManagement.Entity) {
+        window.SchoolManagement.Entity.reset();
+      }
+    });
   },
 
   handleClassChange: function (classId) {
@@ -216,12 +255,17 @@ window.SchoolManagement.SchoolClass = {
         method: "GET",
         success: function (data) {
           if (data && data.logged_in) {
+            // Set studentOf first before updating login status
+            window.SchoolManagement.StudentLogin.studentOf =
+              data.student_of || null;
             window.SchoolManagement.StudentLogin.updateLoginStatus(
               true,
               data.student_id,
-              data.student_name
+              data.student_name,
+              data.student_of
             );
           } else {
+            window.SchoolManagement.StudentLogin.studentOf = null;
             window.SchoolManagement.StudentLogin.updateLoginStatus(false);
           }
         },

@@ -56,11 +56,14 @@ class StudentSessionManager
 
         $student_id = isset($_SESSION[self::SESSION_KEY]) ? intval($_SESSION[self::SESSION_KEY]) : 0;
         $student_name = '';
+        $student_of = '';
+
 
         if ($student_id > 0) {
             $student_post = get_post($student_id);
             if ($student_post && $student_post->post_type === self::STUDENT_POST_TYPE) {
                 $student_name = $student_post->post_title;
+                $student_of = get_post_meta($student_post->ID, 'student_of', true);
             } else {
                 // Post không tồn tại hoặc không phải student, xóa session
                 self::clearSession();
@@ -72,6 +75,7 @@ class StudentSessionManager
             'logged_in' => $student_id > 0,
             'student_id' => $student_id,
             'student_name' => $student_name,
+            'student_of' => $student_of,
         );
     }
 
@@ -136,6 +140,7 @@ class StudentSessionManager
                     'success' => true,
                     'student_id' => $student->ID,
                     'student_name' => $student->post_title,
+                    'student_of' => get_post_meta($student->ID, 'student_of', true),
                     'message' => 'Login successful'
                 );
             }
@@ -204,7 +209,7 @@ class StudentSessionManager
         );
 
         // Có thể thêm các meta fields khác nếu cần
-        $custom_fields = array('student_email', 'student_phone', 'student_class');
+        $custom_fields = array('student_email', 'student_phone', 'student_of');
         foreach ($custom_fields as $field) {
             $value = get_post_meta($student_post->ID, $field, true);
             if (!empty($value)) {
@@ -219,10 +224,10 @@ class StudentSessionManager
      * Kiểm tra xem student có quyền truy cập resource nào đó không
      * 
      * @param int $resource_id ID của resource cần kiểm tra
-     * @param string $resource_type Loại resource (class, entity, etc.)
+     * @param string $resource_type Loại resource (school, class, etc.)
      * @return bool True nếu có quyền truy cập
      */
-    public static function hasAccessToResource($resource_id, $resource_type = 'class')
+    public static function hasAccessToResource($resource_id, $resource_type = 'school')
     {
         $session = self::checkSession();
 
@@ -232,9 +237,9 @@ class StudentSessionManager
 
         // Logic kiểm tra quyền truy cập có thể customize tùy theo yêu cầu
         // Ví dụ: kiểm tra student có thuộc class này không
-        if ($resource_type === 'class') {
-            $student_class = get_post_meta($session['student_id'], 'student_class', true);
-            return !empty($student_class) && intval($student_class) === intval($resource_id);
+        if ($resource_type === 'school') {
+            $student_of = get_post_meta($session['student_id'], 'student_of', true);
+            return !empty($student_of) && intval($student_of) === intval($resource_id);
         }
 
         return true; // Default cho phép truy cập

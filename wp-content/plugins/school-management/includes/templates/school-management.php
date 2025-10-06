@@ -1,7 +1,7 @@
 <div id="school-management-container">
     <!-- Student Status Section -->
     <div id="student-status" class="student-status">
-        <span id="student-info">Đã đăng nhập: <strong id="student-name"></strong></span>
+        <span id="student-info">Xin chào <strong id="student-name"></strong></span>
         <button type="button" id="student-logout-btn" class="btn btn-sm btn-outline-secondary student-logout-btn">Đăng
             xuất</button>
     </div>

@@ -12,6 +12,26 @@ require_once plugin_dir_path(__FILE__) . '../utilities/session-manager.php';
  */
 function register_school_management_routes()
 {
+    register_rest_route('school-management/v1', '/checkstudentof/(?P<school_id>\d+)/(?P<student_of>[^/]+)', array(
+        'methods' => 'GET',
+        'callback' => 'check_student_of',
+        'args' => array(
+            'school_id' => array(
+                'validate_callback' => function ($param, $request, $key) {
+                    return is_numeric($param);
+                }
+            ),
+            'student_of' => array(
+                'validate_callback' => function ($param, $request, $key) {
+                    return !empty($param) && is_string($param);
+                },
+                'sanitize_callback' => function ($param, $request, $key) {
+                    return sanitize_text_field(urldecode($param));
+                }
+            ),
+        ),
+    ));
+
     register_rest_route('school-management/v1', '/schools', array(
         'methods' => 'GET',
         'callback' => 'get_schools',
@@ -325,4 +345,29 @@ function student_login($request)
 function student_logout()
 {
     return StudentSessionManager::logout();
+}
+
+/**
+ * Check if student_of is allowed to access school_id
+ */
+function check_student_of($request)
+{
+    $school_id = $request['school_id'];
+    $student_of = $request['student_of'];
+
+    $school_post = get_post($school_id);
+    if (!$school_post || $school_post->post_type !== 'school') {
+        return new WP_Error('invalid_school', 'Invalid school ID', array('status' => 404));
+    }
+    $school_name = $school_post->post_title;
+
+    // student_of is the school title that student belongs to
+    // Check if student_of matches the requested school's title
+    $has_access = ($student_of === $school_name);
+
+    return array(
+        'has_access' => $has_access,
+        'school_name' => $school_name,
+        'student_of' => $student_of
+    );
 }
