@@ -2,14 +2,16 @@
     <!-- Student Status Section -->
     <div id="student-status" class="student-status">
         <span id="student-info">Đã đăng nhập: <strong id="student-name"></strong></span>
-        <button type="button" id="student-logout-btn" class="btn btn-sm btn-outline-secondary student-logout-btn">Đăng xuất</button>
+        <button type="button" id="student-logout-btn" class="btn btn-sm btn-outline-secondary student-logout-btn">Đăng
+            xuất</button>
     </div>
 
     <div id="select-school">
-        <label for="school-dropdown" class="center-label">Chọn khối học sinh tham gia:</label>
-        <select id="school-dropdown" class="center-select">
-            <option value="">-- Chọn khối học sinh tham gia --</option>
-        </select>
+        <nav class="school-nav">
+            <ul id="school-nav-list" class="nav nav-pills justify-content-center">
+                <li class="nav-item"><a href="#" class="nav-link school-nav-item" data-school-id="home">Home</a></li>
+            </ul>
+        </nav>
     </div>
 
     <div id="select-class" class="select-class">

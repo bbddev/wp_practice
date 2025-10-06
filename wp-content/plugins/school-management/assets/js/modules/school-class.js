@@ -18,16 +18,12 @@ window.SchoolManagement.SchoolClass = {
   showSchoolSelection: function () {
     const $ = this.$ || window.SchoolManagement.$ || jQuery;
 
-    // Show school selection
+    // Show school selection (menu navigation)
     $("#select-school").show();
 
     // Hide other containers
     $("#select-class").hide();
     $("#entity-container").hide();
-
-    // Reset dropdowns to default state
-    $("#school-dropdown").val("");
-    $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
 
     // Clear class title
     $("#class-title").text("");
@@ -46,21 +42,28 @@ window.SchoolManagement.SchoolClass = {
     const self = this;
     const $ = this.$;
 
-    $("#school-dropdown").on("change", function () {
-      const schoolId = $(this).val();
-      // Before handling school change, ensure a student is logged in
-      if (window.SchoolManagement.StudentLogin) {
-        // Provide a callback to run after session check / login
-        window.SchoolManagement.StudentLogin.checkSessionWithCallback(
-          function () {
-            self.handleSchoolChange(schoolId);
-          }
-        );
+    // Bind click event for navigation menu
+    $(document).on("click", ".school-nav-item", function (e) {
+      e.preventDefault();
+      const schoolId = $(this).data("school-id");
+
+      // Active class toggle
+      $(".school-nav-item").removeClass("active");
+      $(this).addClass("active");
+
+      if (schoolId === "home") {
+        // Reset to initial state (showSchoolSelection)
+        self.showSchoolSelection();
+      } else {
+        // Ensure student is logged in before handling school change
+        if (window.SchoolManagement.StudentLogin) {
+          window.SchoolManagement.StudentLogin.checkSessionWithCallback(
+            function () {
+              self.handleSchoolChange(schoolId);
+            }
+          );
+        }
       }
-      // else {
-      //   // Fallback: just handle change
-      //   self.handleSchoolChange(schoolId);
-      // }
     });
 
     $("#class-dropdown").on("change", function () {
@@ -122,7 +125,7 @@ window.SchoolManagement.SchoolClass = {
       url: schoolManagementAjax.apiUrl + "school-management/v1/schools",
       method: "GET",
       success: function (data) {
-        self.populateSchoolDropdown(data);
+        self.populateSchoolNav(data);
       },
       error: function () {
         console.error("Error loading schools");
@@ -134,20 +137,21 @@ window.SchoolManagement.SchoolClass = {
    * Populate school dropdown with data
    * @param {Array} data - Schools data
    */
-  populateSchoolDropdown: function (data) {
+  populateSchoolNav: function (data) {
     const $ = this.$;
-    const $dropdown = $("#school-dropdown");
-    $dropdown.html(
-      '<option value="">-- Chọn khối học sinh tham gia --</option>'
-    );
+    const $navlist = $("#school-nav-list");
 
     if (data && data.length > 0) {
       // Sort schools naturally by title
       const sortedData = window.SchoolManagement.Utils.sortByTitle(data);
 
       $.each(sortedData, function (index, school) {
-        $dropdown.append(
-          '<option value="' + school.ID + '">' + school.post_title + "</option>"
+        $navlist.append(
+          '<li class="nav-item"><a href="#" class="nav-link school-nav-item" data-school-id="' +
+            school.ID +
+            '">' +
+            school.post_title +
+            "</a></li>"
         );
       });
     }
