@@ -118,7 +118,7 @@
     aria-hidden="true">
     <div class="custom-modal" role="document">
         <div class="custom-modal-header">
-            <h5 class="custom-modal-title" id="studentLoginModalLabel">Đăng nhập học sinh</h5>
+            <h5 class="custom-modal-title" id="studentLoginModalLabel">Login</h5>
             <button type="button" class="custom-modal-close" onclick="window.SchoolManagement.CustomModal.closeModal()"
                 aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -133,7 +133,7 @@
                 <div id="studentUsernameError" class="custom-error-message"></div>
             </div>
             <div class="custom-form-group">
-                <label for="studentPasswordInput">Mật khẩu:</label>
+                <label for="studentPasswordInput">Password:</label>
                 <div class="custom-input-group">
                     <input type="password" class="password-input" id="studentPasswordInput"
                         placeholder="Nhập mật khẩu...">
@@ -146,8 +146,8 @@
         </div>
         <div class="custom-modal-footer">
             <button type="button" class="custom-btn custom-btn-secondary"
-                onclick="window.SchoolManagement.CustomModal.closeModal()">Hủy</button>
-            <button type="button" class="custom-btn custom-btn-primary" id="submitStudentLogin">Xác nhận</button>
+                onclick="window.SchoolManagement.CustomModal.closeModal()">Cancel</button>
+            <button type="button" class="custom-btn custom-btn-primary" id="submitStudentLogin">Confirm</button>
         </div>
     </div>
 </div>
