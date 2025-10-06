@@ -1,15 +1,17 @@
 <div id="school-management-container">
     <!-- Student Status Section -->
     <div id="student-status" class="student-status">
-        <span id="student-info">Đã đăng nhập: <strong id="student-name"></strong></span>
-        <button type="button" id="student-logout-btn" class="btn btn-sm btn-outline-secondary student-logout-btn">Đăng xuất</button>
+        <span id="student-info">Xin chào <strong id="student-name"></strong></span>
+        <button type="button" id="student-logout-btn" class="btn btn-sm btn-outline-secondary student-logout-btn">Đăng
+            xuất</button>
     </div>
 
     <div id="select-school">
-        <label for="school-dropdown" class="center-label">Chọn khối học sinh tham gia:</label>
-        <select id="school-dropdown" class="center-select">
-            <option value="">-- Chọn khối học sinh tham gia --</option>
-        </select>
+        <nav class="school-nav">
+            <ul id="school-nav-list" class="nav nav-pills justify-content-center">
+                <li class="nav-item"><a href="#" class="nav-link school-nav-item" data-school-id="home">Home</a></li>
+            </ul>
+        </nav>
     </div>
 
     <div id="select-class" class="select-class">
@@ -21,12 +23,12 @@
 
     <div id="entity-container" class="entity-container">
         <div class="row d-flex justify-content-between align-items-center mb-3">
-            <div class="col-auto">
+            <!-- <div class="col-auto">
                 <button class="btn btn-secondary" onclick="showSchoolSelection()">Back</button>
             </div>
             <div class="col text-center">
                 <h3 class="mb-0">Danh sách học sinh tham gia của <strong id="class-title"></strong>:</h3>
-            </div>
+            </div> -->
             <div class="col-auto">
                 <!-- Empty column for balance -->
             </div>
@@ -116,7 +118,7 @@
     aria-hidden="true">
     <div class="custom-modal" role="document">
         <div class="custom-modal-header">
-            <h5 class="custom-modal-title" id="studentLoginModalLabel">Đăng nhập học sinh</h5>
+            <h5 class="custom-modal-title" id="studentLoginModalLabel">Login</h5>
             <button type="button" class="custom-modal-close" onclick="window.SchoolManagement.CustomModal.closeModal()"
                 aria-label="Close">
                 <span aria-hidden="true">&times;</span>
@@ -131,7 +133,7 @@
                 <div id="studentUsernameError" class="custom-error-message"></div>
             </div>
             <div class="custom-form-group">
-                <label for="studentPasswordInput">Mật khẩu:</label>
+                <label for="studentPasswordInput">Password:</label>
                 <div class="custom-input-group">
                     <input type="password" class="password-input" id="studentPasswordInput"
                         placeholder="Nhập mật khẩu...">
@@ -144,8 +146,8 @@
         </div>
         <div class="custom-modal-footer">
             <button type="button" class="custom-btn custom-btn-secondary"
-                onclick="window.SchoolManagement.CustomModal.closeModal()">Hủy</button>
-            <button type="button" class="custom-btn custom-btn-primary" id="submitStudentLogin">Xác nhận</button>
+                onclick="window.SchoolManagement.CustomModal.closeModal()">Cancel</button>
+            <button type="button" class="custom-btn custom-btn-primary" id="submitStudentLogin">Confirm</button>
         </div>
     </div>
 </div>

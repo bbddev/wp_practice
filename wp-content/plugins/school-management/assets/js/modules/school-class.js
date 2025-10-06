@@ -18,16 +18,12 @@ window.SchoolManagement.SchoolClass = {
   showSchoolSelection: function () {
     const $ = this.$ || window.SchoolManagement.$ || jQuery;
 
-    // Show school selection
-    $("#select-school").show();
+    // Show school selection (menu navigation)
+    // $("#select-school").show();
 
     // Hide other containers
     $("#select-class").hide();
     $("#entity-container").hide();
-
-    // Reset dropdowns to default state
-    $("#school-dropdown").val("");
-    $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
 
     // Clear class title
     $("#class-title").text("");
@@ -46,21 +42,28 @@ window.SchoolManagement.SchoolClass = {
     const self = this;
     const $ = this.$;
 
-    $("#school-dropdown").on("change", function () {
-      const schoolId = $(this).val();
-      // Before handling school change, ensure a student is logged in
-      if (window.SchoolManagement.StudentLogin) {
-        // Provide a callback to run after session check / login
-        window.SchoolManagement.StudentLogin.checkSessionWithCallback(
-          function () {
-            self.handleSchoolChange(schoolId);
-          }
-        );
+    // Bind click event for navigation menu
+    $(document).on("click", ".school-nav-item", function (e) {
+      e.preventDefault();
+      const schoolId = $(this).data("school-id");
+
+      // Active class toggle
+      $(".school-nav-item").removeClass("active");
+      $(this).addClass("active");
+
+      if (schoolId === "home") {
+        // Reset to initial state (showSchoolSelection)
+        self.showSchoolSelection();
+      } else {
+        // Ensure student is logged in before handling school change
+        if (window.SchoolManagement.StudentLogin) {
+          window.SchoolManagement.StudentLogin.checkSessionWithCallback(
+            function () {
+              self.handleSchoolChange(schoolId);
+            }
+          );
+        }
       }
-      // else {
-      //   // Fallback: just handle change
-      //   self.handleSchoolChange(schoolId);
-      // }
     });
 
     $("#class-dropdown").on("change", function () {
@@ -69,23 +72,62 @@ window.SchoolManagement.SchoolClass = {
     });
   },
 
+  checkStudentOf: function (schoolId, studentOf, callback) {
+    const self = this;
+
+    window.SchoolManagement.Utils.createAjaxRequest({
+      url:
+        schoolManagementAjax.apiUrl +
+        "school-management/v1/checkstudentof/" +
+        schoolId +
+        "/" +
+        encodeURIComponent(studentOf),
+      method: "GET",
+      success: function (data) {
+        const hasAccess = data && data.has_access;
+        if (callback && typeof callback === "function") {
+          callback(hasAccess);
+        }
+      },
+      error: function () {
+        console.error("Error checking student access to school");
+        if (callback && typeof callback === "function") {
+          callback(false); // Deny access on error
+        }
+      },
+    });
+  },
+
   handleSchoolChange: function (schoolId) {
+    const self = this;
     const $ = this.$;
-    if (schoolId) {
-      this.loadClasses(schoolId);
-      $("#select-class").show();
-    } else {
-      $("#select-class").hide();
-      $("#entity-container").hide();
-    }
+    const studentof = window.SchoolManagement.StudentLogin.studentOf;
+    console.log("🚀 ~ studentof:", studentof);
 
-    $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
-    $("#entity-grid").empty();
-    $("#pagination-container").hide();
+    // Check if student has access to this school
+    this.checkStudentOf(schoolId, studentof, function (hasAccess) {
+      if (!hasAccess) {
+        alert("Chọn sai Khối");
+        return;
+      }
 
-    if (window.SchoolManagement.Entity) {
-      window.SchoolManagement.Entity.reset();
-    }
+      // Student has access, proceed with loading classes
+      if (schoolId) {
+        self.loadClasses(schoolId);
+        $("#select-class").show();
+      } else {
+        $("#select-class").hide();
+        $("#entity-container").hide();
+      }
+
+      $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
+      $("#entity-grid").empty();
+      $("#pagination-container").hide();
+
+      if (window.SchoolManagement.Entity) {
+        window.SchoolManagement.Entity.reset();
+      }
+    });
   },
 
   handleClassChange: function (classId) {
@@ -122,7 +164,7 @@ window.SchoolManagement.SchoolClass = {
       url: schoolManagementAjax.apiUrl + "school-management/v1/schools",
       method: "GET",
       success: function (data) {
-        self.populateSchoolDropdown(data);
+        self.populateSchoolNav(data);
       },
       error: function () {
         console.error("Error loading schools");
@@ -134,20 +176,21 @@ window.SchoolManagement.SchoolClass = {
    * Populate school dropdown with data
    * @param {Array} data - Schools data
    */
-  populateSchoolDropdown: function (data) {
+  populateSchoolNav: function (data) {
     const $ = this.$;
-    const $dropdown = $("#school-dropdown");
-    $dropdown.html(
-      '<option value="">-- Chọn khối học sinh tham gia --</option>'
-    );
+    const $navlist = $("#school-nav-list");
 
     if (data && data.length > 0) {
       // Sort schools naturally by title
       const sortedData = window.SchoolManagement.Utils.sortByTitle(data);
 
       $.each(sortedData, function (index, school) {
-        $dropdown.append(
-          '<option value="' + school.ID + '">' + school.post_title + "</option>"
+        $navlist.append(
+          '<li class="nav-item"><a href="#" class="nav-link school-nav-item" data-school-id="' +
+            school.ID +
+            '">' +
+            school.post_title +
+            "</a></li>"
         );
       });
     }
@@ -212,12 +255,17 @@ window.SchoolManagement.SchoolClass = {
         method: "GET",
         success: function (data) {
           if (data && data.logged_in) {
+            // Set studentOf first before updating login status
+            window.SchoolManagement.StudentLogin.studentOf =
+              data.student_of || null;
             window.SchoolManagement.StudentLogin.updateLoginStatus(
               true,
               data.student_id,
-              data.student_name
+              data.student_name,
+              data.student_of
             );
           } else {
+            window.SchoolManagement.StudentLogin.studentOf = null;
             window.SchoolManagement.StudentLogin.updateLoginStatus(false);
           }
         },
