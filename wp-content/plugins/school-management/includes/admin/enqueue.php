@@ -51,8 +51,17 @@ function enqueue_school_management_frontend_scripts()
     wp_enqueue_style(
         'custom-modal-css',
         SCHOOLPLUGIN_URL . '/assets/style/custom-modal.css',
-        array(),
+        array('bootstrap-css'),
         $custom_modal_css_version
+    );
+
+    $custom_header_css_version = filemtime(SCHOOLPLUGIN_PATH . '/assets/style/custom-header.css');
+
+    wp_enqueue_style(
+        'custom-header-css',
+        SCHOOLPLUGIN_URL . '/assets/style/custom-header.css',
+        array('bootstrap-css'),
+        $custom_header_css_version
     );
 
     // Enqueue modular JavaScript files
