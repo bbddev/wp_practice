@@ -40,11 +40,12 @@ add_action('save_post', 'save_class_meta');
 
 add_action('admin_enqueue_scripts', 'enqueue_media_scripts');
 
+add_action('wp_enqueue_scripts', 'enqueue_school_management_frontend_scripts');
+
 add_action('add_meta_boxes', 'add_student_meta_boxes');
 
 add_action('save_post', 'save_student_meta');
 
-add_action('wp_enqueue_scripts', 'enqueue_school_management_frontend_scripts');
 /**
  * Create all post types
  */

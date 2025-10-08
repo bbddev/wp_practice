@@ -102,7 +102,6 @@ window.SchoolManagement.SchoolClass = {
     const self = this;
     const $ = this.$;
     const studentof = window.SchoolManagement.StudentLogin.studentOf;
-    console.log("🚀 ~ studentof:", studentof);
 
     // Check if student has access to this school
     this.checkStudentOf(schoolId, studentof, function (hasAccess) {
@@ -112,12 +111,14 @@ window.SchoolManagement.SchoolClass = {
       }
 
       // Student has access, proceed with loading classes
+      // if (schoolId) {
+      self.loadClasses(schoolId);
+      //   $("#select-class").show();
+      // } else {
+      //   $("#select-class").hide();
+      //   $("#entity-container").hide();
+      // }
       if (schoolId) {
-        self.loadClasses(schoolId);
-        $("#select-class").show();
-      } else {
-        $("#select-class").hide();
-        $("#entity-container").hide();
       }
 
       $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
@@ -210,7 +211,9 @@ window.SchoolManagement.SchoolClass = {
         schoolId,
       method: "GET",
       success: function (data) {
-        self.populateClassDropdown(data);
+        // self.populateClassDropdown(data);
+        const classId = data[0]?.ID || null;
+        self.handleClassChange(classId);
       },
       error: function () {
         console.error("Error loading classes");
