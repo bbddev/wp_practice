@@ -130,7 +130,7 @@ window.SchoolManagement.CustomPassword = {
           // Load entities directly
           window.SchoolManagement.Entity.loadEntities(classId);
           document.getElementById("entity-container").style.display = "block";
-          document.getElementById("select-school").style.display = "none";
+          // document.getElementById("select-school").style.display = "none";
           document.getElementById("select-class").style.display = "none";
         }
       },
