@@ -6,13 +6,13 @@
             xuất</button>
     </div>
 
-    <div id="select-school">
+    <!-- <div id="select-school">
         <nav class="school-nav">
             <ul id="school-nav-list" class="nav nav-pills justify-content-center">
                 <li class="nav-item"><a href="#" class="nav-link school-nav-item" data-school-id="home">Home</a></li>
             </ul>
         </nav>
-    </div>
+    </div> -->
 
     <div id="select-class" class="select-class">
         <label for="class-dropdown" class="center-label">Chọn danh sách bài học:</label>
