@@ -207,10 +207,11 @@ window.SchoolManagement.StudentLogin = {
       success: function (data) {
         if (data && data.success) {
           self.updateLoginStatus(false);
-          // Reset school selection
-          if (window.SchoolManagement.SchoolClass) {
-            window.SchoolManagement.SchoolClass.showSchoolSelection();
-          }
+          // // Reset school selection
+          // if (window.SchoolManagement.SchoolClass) {
+          //   window.SchoolManagement.SchoolClass.showSchoolSelection();
+          // }
+          window.location.href = "https://thcsanphu.ic3.info";
         }
       },
       error: function () {
