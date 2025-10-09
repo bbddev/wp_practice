@@ -28,6 +28,55 @@ function wnsp_ensure_session_manager_loaded()
 }
 
 /**
+ * Detect required student group based on the current request path.
+ * Returns a string like 'Khối 6', 'Khối 7', 'Khối 8' or empty when no restriction.
+ */
+function wnsp_get_required_group_from_request()
+{
+    $uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+    $script = isset($_SERVER['SCRIPT_FILENAME']) ? str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME']) : '';
+
+    $hay = strtolower($uri . ' ' . $script);
+
+    if (strpos($hay, '/source/khoi6') !== false) {
+        return 'Khối 6';
+    }
+    if (strpos($hay, '/source/khoi7') !== false) {
+        return 'Khối 7';
+    }
+    if (strpos($hay, '/source/khoi8') !== false) {
+        return 'Khối 8';
+    }
+
+    return '';
+}
+
+/**
+ * Check whether the current logged-in student belongs to the required group for this request.
+ * Returns true when allowed, false when access should be denied.
+ */
+function wnsp_check_group_access()
+{
+    $required = wnsp_get_required_group_from_request();
+    if (empty($required)) {
+        return true; // no restriction for this path
+    }
+
+    // Ensure StudentSessionManager is available
+    wnsp_ensure_session_manager_loaded();
+    if (!class_exists('StudentSessionManager')) {
+        // If we can't check, be conservative and deny access
+        return false;
+    }
+
+    $session = StudentSessionManager::checkSession();
+    $student_of = isset($session['student_of']) ? trim($session['student_of']) : '';
+
+    // Direct string comparison (exact match)
+    return $student_of === $required;
+}
+
+/**
  * Sanitize text field nếu function WordPress không có
  */
 function wnsp_sanitize_text_field($str)
@@ -64,13 +113,28 @@ function wnsp_require_protect()
         exit;
     }
 
-    if (wnsp_check_login_status()) {
-        return true; // Đã login, cho phép truy cập
+    // First ensure logged in
+    if (!wnsp_check_login_status()) {
+        // Not logged in, render login popup
+        wnsp_render_login_page();
+        exit;
     }
 
-    // Chưa login, hiển thị popup login
-    wnsp_render_login_page();
-    exit;
+    // If logged in, also check group/folder access (Khối 6/7/8 -> source/khoi6|7|8)
+    if (!wnsp_check_group_access()) {
+        // Deny access with 403
+        status_header(403);
+        // Simple 403 message - keep minimal HTML to avoid dependencies
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>403 Forbidden</title></head><body style="font-family:Arial,sans-serif;margin:40px;">';
+        echo '<h1>403 Forbidden</h1>';
+        echo '<p>Bạn không có quyền truy cập vào bài học này.</p>';
+        echo '<p><a href="' . esc_url(function_exists('home_url') ? home_url() : '/') . '">Về trang chủ</a></p>';
+        echo '</body></html>';
+        exit;
+    }
+
+    // Logged in and group check passed
+    return true;
 }
 
 /**
@@ -237,17 +301,12 @@ function wnsp_get_login_styles()
         }
         
         .wnsp-login-container {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
-            max-width: 480px;
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
             width: 90%;
-            max-height: 90vh;
-            overflow: hidden;
-            position: relative;
-            transform: scale(0.8) translateY(20px);
-            transition: all 0.4s 
-            cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
         
         .wnsp-login-header h2 {
