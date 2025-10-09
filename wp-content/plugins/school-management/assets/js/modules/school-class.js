@@ -13,6 +13,13 @@ window.SchoolManagement.SchoolClass = {
     this.bindEvents();
     this.loadSchools();
     this.checkInitialLoginStatus();
+    if (window.SchoolManagement.StudentLogin) {
+          window.SchoolManagement.StudentLogin.checkSessionWithCallback(
+            function () {
+              self.handleSchoolChange(schoolId);
+            }
+          );
+        }
   },
 
   showSchoolSelection: function () {
@@ -52,8 +59,9 @@ window.SchoolManagement.SchoolClass = {
       $(this).addClass("active");
 
       if (schoolId === "home") {
-        // Reset to initial state (showSchoolSelection)
-        self.showSchoolSelection();
+        // Redirect to external link when 'home' is clicked
+        window.location.href = "https://thcsanphu.ic3.info";
+        return;
       } else {
         // Ensure student is logged in before handling school change
         if (window.SchoolManagement.StudentLogin) {
@@ -118,8 +126,6 @@ window.SchoolManagement.SchoolClass = {
       //   $("#select-class").hide();
       //   $("#entity-container").hide();
       // }
-      if (schoolId) {
-      }
 
       $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
       $("#entity-grid").empty();

@@ -119,10 +119,10 @@
     <div class="custom-modal" role="document">
         <div class="custom-modal-header">
             <h5 class="custom-modal-title" id="studentLoginModalLabel">Login</h5>
-            <button type="button" class="custom-modal-close" onclick="window.SchoolManagement.CustomModal.closeModal()"
+            <!-- <button type="button" class="custom-modal-close" onclick="window.SchoolManagement.CustomModal.closeModal()"
                 aria-label="Close">
                 <span aria-hidden="true">&times;</span>
-            </button>
+            </button> -->
         </div>
         <div class="custom-modal-body">
             <div class="custom-form-group">
@@ -144,9 +144,7 @@
                 <div id="studentPasswordError" class="custom-error-message"></div>
             </div>
         </div>
-        <div class="custom-modal-footer">
-            <button type="button" class="custom-btn custom-btn-secondary"
-                onclick="window.SchoolManagement.CustomModal.closeModal()">Cancel</button>
+        <div class="custom-modal-footer">            
             <button type="button" class="custom-btn custom-btn-primary" id="submitStudentLogin">Confirm</button>
         </div>
     </div>
