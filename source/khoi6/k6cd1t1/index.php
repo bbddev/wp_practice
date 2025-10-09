@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__FILE__, 4) . '/wp-load.php';
-if (function_exists('')) {
+if (function_exists('wnsp_require_protect')) {
     wnsp_require_protect();
 }
 ?>

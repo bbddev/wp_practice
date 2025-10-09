@@ -16,7 +16,6 @@ window.SchoolManagement.SchoolClass = {
     // Only call handleSchoolChange if schoolId is defined
     if (window.SchoolManagement.StudentLogin) {
       var self = this;
-      var schoolId = window.SchoolManagement.StudentLogin.studentOf;
       window.SchoolManagement.StudentLogin.checkSessionWithCallback(
         function () {
           self.handleSchoolChangeWhenLogin();

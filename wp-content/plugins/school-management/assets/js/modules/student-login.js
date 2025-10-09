@@ -66,7 +66,7 @@ window.SchoolManagement.StudentLogin = {
    * Check if a student session exists; if yes run callback immediately. If not, show login modal and store callback.
    * @param {Function} callback - Function to call on successful session or after login
    */
-  checkSessionWithCallback: function (callback, schoolName) {
+  checkSessionWithCallback: function (callback) {
     const self = this;
     // Save callback
     this.pendingCallback = callback || null;

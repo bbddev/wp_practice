@@ -46,6 +46,7 @@ class StudentSessionManager
      * 
      * @return array Thông tin session hiện tại
      */
+    // route: check-student-session
     public static function checkSession()
     {
         self::ensureSessionStarted();
