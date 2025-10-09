@@ -34,6 +34,9 @@ function save_entity_meta($post_id)
     if (isset($_POST['entity_image'])) {
         update_post_meta($post_id, 'Hình', sanitize_text_field($_POST['entity_image']));
     }
+    if (isset($_POST['entity_countuser'])) {
+        update_post_meta($post_id, 'countuser', intval($_POST['entity_countuser']));
+    }
 }
 
 function save_class_meta($post_id)

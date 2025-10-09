@@ -32,6 +32,7 @@ function render_entity_meta_box($post)
     $entity_class = get_post_meta($post->ID, 'Thuộc lớp', true);
     $entity_link = get_post_meta($post->ID, 'Link khi click', true);
     $entity_image = get_post_meta($post->ID, 'Hình', true);
+    $entity_countuser = get_post_meta($post->ID, 'countuser', true);
 
 
     // Lấy danh sách tất cả các lớp học
@@ -42,7 +43,7 @@ function render_entity_meta_box($post)
     ));
 
     ?>
-        <!-- <p>
+    <!-- <p>
             <label for="entity_username">Username:</label>
             <input type="text" id="entity_username" name="entity_username" value="<?php echo esc_attr($entity_username); ?>"
                 style="width: 100%;" />
@@ -52,16 +53,21 @@ function render_entity_meta_box($post)
             <input type="text" id="lesson_password" name="lesson_password" value="<?php echo esc_attr($lesson_password); ?>"
                 style="width: 100%;" />
         <p> -->
-        <label for="entity_class">Thuộc lớp:</label>
-        <select id="entity_class" name="entity_class" style="width: 100%;">
-            <option value="">-- Chọn lớp --</option>
-            <?php foreach ($classes as $class): ?>
-                <option value="<?php echo esc_attr($class->post_title); ?>" 
-                    <?php selected($entity_class, $class->post_title); ?>>
-                    <?php echo esc_html($class->post_title); ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
+    <p>
+        <label for="entity_countuser">Số lần học:</label>
+        <input type="number" id="entity_countuser" name="entity_countuser"
+            value="<?php echo esc_attr($entity_countuser); ?>" style="width: 100%;" />
+    </p>
+    
+    <label for="entity_class">Thuộc lớp:</label>
+    <select id="entity_class" name="entity_class" style="width: 100%;">
+        <option value="">-- Chọn lớp --</option>
+        <?php foreach ($classes as $class): ?>
+            <option value="<?php echo esc_attr($class->post_title); ?>" <?php selected($entity_class, $class->post_title); ?>>
+                <?php echo esc_html($class->post_title); ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
     </p>
     <p>
         <label for="entity_link">Link khi click:</label>

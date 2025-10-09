@@ -38,6 +38,7 @@ function bb_data_custom_columns($columns)
         $columns['title'] = 'Lesson';
         // $columns['csv_username'] = 'Username';
         // $columns['csv_password'] = 'Password';
+        $columns['csv_countuser'] = 'Số lần học';
         $columns['csv_parent'] = 'Parent';
         $columns['csv_link'] = 'Link';
         $columns['csv_image'] = 'Image';
@@ -80,9 +81,22 @@ function bb_data_custom_column_content($column, $post_id)
         case 'csv_username':
             bb_data_display_username_column($post_type, $post_id);
             break;
+        case 'csv_countuser':
+            bb_data_display_countuser_column($post_type, $post_id);
+            break;
     }
 }
 
+/**
+ * Display countuser column
+ */
+function bb_data_display_countuser_column($post_type, $post_id)
+{
+    if ($post_type === 'entity') {
+        $countuser = get_post_meta($post_id, 'countuser', true);
+        echo esc_html($countuser ?: '-');
+    }
+}
 /**
  * Display password column
  */
