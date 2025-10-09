@@ -237,12 +237,17 @@ function wnsp_get_login_styles()
         }
         
         .wnsp-login-container {
-            background: white;
-            border-radius: 8px;
-            padding: 30px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            max-width: 480px;
             width: 90%;
-            max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow: hidden;
+            position: relative;
+            transform: scale(0.8) translateY(20px);
+            transition: all 0.4s 
+            cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .wnsp-login-header h2 {
