@@ -117,7 +117,7 @@ window.SchoolManagement.SchoolClass = {
     // Check if student has access to this school
     this.checkStudentOf(schoolId, studentof, function (hasAccess) {
       if (!hasAccess) {
-        alert("Chọn sai Khối");
+        alert("Bạn không có quyền truy cập");
         return;
       }
 
