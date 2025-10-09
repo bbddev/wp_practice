@@ -37,6 +37,18 @@ function register_school_management_routes()
         'callback' => 'get_schools',
     ));
 
+    register_rest_route('school-management/v1', '/classesbystudentof/(?P<student_of>[^/]+)', array(
+        'methods' => 'GET',
+        'callback' => 'get_classes_by_studentof',
+        'args' => array(
+            'school_id' => array(
+                'validate_callback' => function ($param, $request, $key) {
+                    return is_numeric($param);
+                }
+            ),
+        ),
+    ));
+
     register_rest_route('school-management/v1', '/classes/(?P<school_id>\d+)', array(
         'methods' => 'GET',
         'callback' => 'get_classes_by_school',
@@ -167,6 +179,38 @@ function get_schools()
 function get_classes_by_school($request)
 {
     $school_id = $request['school_id'];
+    $school_post = get_post($school_id);
+
+    if (!$school_post || $school_post->post_type !== 'school') {
+        return new WP_Error('invalid_school', 'Invalid school ID', array('status' => 404));
+    }
+
+    $school_name = $school_post->post_title;
+
+    $classes = get_posts(array(
+        'post_type' => 'class',
+        'numberposts' => -1,
+        'post_status' => 'publish',
+        'meta_query' => array(
+            array(
+                'key' => 'Thuộc trường',
+                'value' => $school_name,
+                'compare' => '='
+            )
+        )
+    ));
+
+    return $classes;
+}
+function get_classes_by_studentof($request)
+{
+    $student_of = urldecode($request['student_of']);
+    $school_id = get_schoolid_by_title($student_of);
+
+    if (!$school_id) {
+        return new WP_Error('invalid_student_of', 'Cannot find school ID for student_of: ' . $student_of, array('status' => 404));
+    }
+
     $school_post = get_post($school_id);
 
     if (!$school_post || $school_post->post_type !== 'school') {
@@ -370,4 +414,13 @@ function check_student_of($request)
         'school_name' => $school_name,
         'student_of' => $student_of
     );
+}
+
+function get_schoolid_by_title($title)
+{
+    $school = get_page_by_title($title, OBJECT, 'school');
+    if ($school) {
+        return $school->ID;
+    }
+    return null;
 }

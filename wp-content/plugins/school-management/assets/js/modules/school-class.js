@@ -13,13 +13,16 @@ window.SchoolManagement.SchoolClass = {
     this.bindEvents();
     this.loadSchools();
     this.checkInitialLoginStatus();
+    // Only call handleSchoolChange if schoolId is defined
     if (window.SchoolManagement.StudentLogin) {
-          window.SchoolManagement.StudentLogin.checkSessionWithCallback(
-            function () {
-              self.handleSchoolChange(schoolId);
-            }
-          );
+      var self = this;
+      var schoolId = window.SchoolManagement.StudentLogin.studentOf;
+      window.SchoolManagement.StudentLogin.checkSessionWithCallback(
+        function () {
+          self.handleSchoolChangeWhenLogin();
         }
+      );
+    }
   },
 
   showSchoolSelection: function () {
@@ -119,13 +122,13 @@ window.SchoolManagement.SchoolClass = {
       }
 
       // Student has access, proceed with loading classes
-      // if (schoolId) {
-      self.loadClasses(schoolId);
-      //   $("#select-class").show();
-      // } else {
-      //   $("#select-class").hide();
-      //   $("#entity-container").hide();
-      // }
+      if (schoolId) {
+        self.loadClasses(schoolId);
+        console.log("🚀 ~ schoolId:", schoolId);
+      } else {
+        self.loadClasses(studentof);
+        console.log("🚀 ~ studentof:", studentof);
+      }
 
       $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
       $("#entity-grid").empty();
@@ -135,6 +138,32 @@ window.SchoolManagement.SchoolClass = {
         window.SchoolManagement.Entity.reset();
       }
     });
+  },
+  handleSchoolChangeWhenLogin: function () {
+    const self = this;
+    const $ = this.$;
+    const studentof = window.SchoolManagement.StudentLogin.studentOf;
+
+    console.log("🚀 ~ handleSchoolChangeWhenLogin studentof:", studentof);
+    console.log(
+      "🚀 ~ StudentLogin object:",
+      window.SchoolManagement.StudentLogin
+    );
+
+    // Student has access, proceed with loading classes
+    if (studentof && studentof.trim() !== "") {
+      self.loadClasses_bystudentof(studentof);
+    } else {
+      console.warn("No valid studentof value found");
+    }
+
+    $("#class-dropdown").html('<option value="">-- Chọn lớp --</option>');
+    $("#entity-grid").empty();
+    $("#pagination-container").hide();
+
+    if (window.SchoolManagement.Entity) {
+      window.SchoolManagement.Entity.reset();
+    }
   },
 
   handleClassChange: function (classId) {
@@ -201,6 +230,38 @@ window.SchoolManagement.SchoolClass = {
         );
       });
     }
+  },
+
+  loadClasses_bystudentof: function (schoolId) {
+    const self = this;
+
+    // Debug logging
+    console.log("🚀 ~ loadClasses_bystudentof schoolId:", schoolId);
+    console.log("🚀 ~ Encoded schoolId:", encodeURIComponent(schoolId));
+
+    const url =
+      schoolManagementAjax.apiUrl +
+      "school-management/v1/classesbystudentof/" +
+      encodeURIComponent(schoolId);
+    console.log("🚀 ~ Full URL:", url);
+
+    window.SchoolManagement.Utils.createAjaxRequest({
+      url: url,
+      method: "GET",
+      success: function (data) {
+        console.log("🚀 ~ loadClasses_bystudentof success data:", data);
+        const classId = data[0]?.ID || null;
+        self.handleClassChange(classId);
+      },
+      error: function (xhr, status, error) {
+        console.error("Error loading classes by studentof:", {
+          status: status,
+          error: error,
+          responseText: xhr.responseText,
+          url: url,
+        });
+      },
+    });
   },
 
   /**

@@ -1,18 +1,18 @@
 <div id="school-management-container">
     <!-- Student Status Section -->
-    <div id="student-status" class="student-status">
+    <!-- <div id="student-status" class="student-status">
         <span id="student-info">Xin chào <strong id="student-name"></strong></span>
         <button type="button" id="student-logout-btn" class="btn btn-sm btn-outline-secondary student-logout-btn">Đăng
             xuất</button>
-    </div>
+    </div> -->
 
-    <!-- <div id="select-school">
+    <div id="select-school">
         <nav class="school-nav">
             <ul id="school-nav-list" class="nav nav-pills justify-content-center">
                 <li class="nav-item"><a href="#" class="nav-link school-nav-item" data-school-id="home">Home</a></li>
             </ul>
         </nav>
-    </div> -->
+    </div>
 
     <div id="select-class" class="select-class">
         <label for="class-dropdown" class="center-label">Chọn danh sách bài học:</label>
@@ -144,8 +144,13 @@
                 <div id="studentPasswordError" class="custom-error-message"></div>
             </div>
         </div>
-        <div class="custom-modal-footer">            
+        <div class="custom-modal-footer">
             <button type="button" class="custom-btn custom-btn-primary" id="submitStudentLogin">Confirm</button>
         </div>
     </div>
+</div>
+<div id="student-status" class="student-status">
+    <span id="student-info">Xin chào <strong id="student-name"></strong></span>
+    <button type="button" id="student-logout-btn"
+        class="btn btn-sm btn-outline-secondary student-logout-btn">Logout</button>
 </div>
