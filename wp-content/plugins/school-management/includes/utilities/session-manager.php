@@ -4,12 +4,18 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Load tất cả các class dependencies
+require_once dirname(__FILE__) . '/SessionAutoloader.php';
+SessionAutoloader::init();
+
 /**
- * Student Session Manager Class
- * @version 1.0.0
+ * Student Session Manager Class (Refactored)
+ * @version 2.0.0 
  * @author Your Name
+ * 
+ * Đây là class chính quản lý session, sử dụng các class helper
  */
-class StudentSessionManager
+class StudentSessionManager implements SessionInterface
 {
     /**
      * Session key để lưu student ID
@@ -17,78 +23,48 @@ class StudentSessionManager
     const SESSION_KEY = 'school_management_student_id';
 
     /**
-     * Post type của student
-     */
-    const STUDENT_POST_TYPE = 'student';
-
-    /**
-     * Meta key cho username của student
-     */
-    const USERNAME_META_KEY = 'student_username';
-
-    /**
-     * Meta key cho password của student
-     */
-    const PASSWORD_META_KEY = 'student_password';
-
-    /**
-     * Khởi tạo PHP session nếu chưa có
-     */
-    private static function ensureSessionStarted()
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-    }
-
-    /**
      * Kiểm tra xem student có đang login hay không
      * 
      * @return array Thông tin session hiện tại
      */
-    // route: check-student-session
     public static function checkSession()
     {
-        self::ensureSessionStarted();
-
-        $student_id = isset($_SESSION[self::SESSION_KEY]) ? intval($_SESSION[self::SESSION_KEY]) : 0;
-        $session_token = isset($_SESSION['session_token']) ? $_SESSION['session_token'] : '';
-        $student_name = '';
-        $student_of = '';
-
-        if ($student_id > 0) {
-            // Kiểm tra session token có hợp lệ không (chưa bị logout từ thiết bị khác)
-            if (!self::isValidSession($student_id, $session_token)) {
-                // Session không hợp lệ (bị logout từ thiết bị khác), xóa session local
-                self::clearSession();
-                $student_id = 0;
-            } else {
-                $student_post = get_post($student_id);
-                if ($student_post && $student_post->post_type === self::STUDENT_POST_TYPE) {
-                    $student_name = $student_post->post_title;
-                    $student_of = get_post_meta($student_post->ID, 'student_of', true);
-
-                    // Cập nhật last activity
-                    self::updateSessionActivity($student_id, $session_token);
-                } else {
-                    // Post không tồn tại hoặc không phải student, xóa session
-                    self::clearSession();
-                    $student_id = 0;
-                }
-            }
+        if (!SessionHelper::hasSessionData()) {
+            return array(
+                'logged_in' => false,
+                'student_id' => 0,
+                'student_name' => '',
+                'student_of' => '',
+                'user_ip' => '',
+                'device_browser' => '',
+                'device_os' => '',
+                'device_platform' => '',
+                'login_time' => 0,
+            );
         }
 
-        return array(
-            'logged_in' => $student_id > 0,
-            'student_id' => $student_id,
-            'student_name' => $student_name,
-            'student_of' => $student_of,
-            'user_ip' => isset($_SESSION['user_ip']) ? $_SESSION['user_ip'] : '',
-            'device_browser' => isset($_SESSION['device_browser']) ? $_SESSION['device_browser'] : '',
-            'device_os' => isset($_SESSION['device_os']) ? $_SESSION['device_os'] : '',
-            'device_platform' => isset($_SESSION['device_platform']) ? $_SESSION['device_platform'] : '',
-            'login_time' => isset($_SESSION['login_time']) ? $_SESSION['login_time'] : 0,
-        );
+        $session_data = SessionHelper::getSessionData();
+        $student_id = $session_data['student_id'];
+        $session_token = $session_data['session_token'];
+
+        // Kiểm tra session token có hợp lệ không (chưa bị logout từ thiết bị khác)
+        if (!SessionStorage::isValidSession($student_id, $session_token)) {
+            // Session không hợp lệ, xóa session local
+            self::clearSession();
+            return self::checkSession(); // Recursive call để return empty session
+        }
+
+        // Kiểm tra student post có hợp lệ không
+        if (!StudentValidator::isValidStudentPost($student_id)) {
+            self::clearSession();
+            return self::checkSession(); // Recursive call để return empty session
+        }
+
+        // Cập nhật last activity
+        SessionStorage::updateSessionActivity($student_id, $session_token);
+
+        // Return session data với logged_in = true
+        return array_merge($session_data, array('logged_in' => true));
     }
 
     /**
@@ -100,38 +76,19 @@ class StudentSessionManager
      */
     public static function login($username, $password)
     {
-        self::ensureSessionStarted();
-
         // Validate input
-        if (empty($username) || empty($password)) {
+        $validation = StudentValidator::validateLoginInput($username, $password);
+        if (!$validation['valid']) {
             return array(
                 'success' => false,
-                'message' => 'Username and password are required',
-                'error_code' => 'INVALID_INPUT'
+                'message' => $validation['message'],
+                'error_code' => $validation['error_code']
             );
         }
 
-        // Sanitize input
-        $username = sanitize_text_field($username);
-        $password = sanitize_text_field($password);
-
-        // Query students với username matching
-        $args = array(
-            'post_type' => self::STUDENT_POST_TYPE,
-            'numberposts' => -1,
-            'post_status' => 'publish',
-            'meta_query' => array(
-                array(
-                    'key' => self::USERNAME_META_KEY,
-                    'value' => $username,
-                    'compare' => '='
-                )
-            )
-        );
-
-        $students = get_posts($args);
-
-        if (!$students || count($students) === 0) {
+        // Tìm student bằng username
+        $students = StudentValidator::findStudentByUsername($username);
+        if (!$students) {
             return array(
                 'success' => false,
                 'message' => 'Invalid credentials',
@@ -141,46 +98,8 @@ class StudentSessionManager
 
         // Tìm student có password matching
         foreach ($students as $student) {
-            $stored_password = get_post_meta($student->ID, self::PASSWORD_META_KEY, true);
-            $student_name = $student->post_title;
-            $student_of = get_post_meta($student->ID, 'student_of', true);
-
-            // So sánh password (có thể thay bằng password_verify() nếu dùng hash)
-            if ($password === $stored_password) {
-                // Lấy thông tin thiết bị và IP
-                $user_ip = self::getUserIP();
-                $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-                $device_info = self::parseUserAgent($user_agent);
-
-                // Tạo session token mới và xử lý single device login
-                $session_token = self::generateSessionToken();
-                self::invalidateOtherSessions($student->ID, $session_token);
-
-                // Đăng nhập thành công - set session
-                $_SESSION[self::SESSION_KEY] = $student->ID;
-                $_SESSION['student_name'] = $student_name;
-                $_SESSION['student_of'] = $student_of;
-                $_SESSION['login_time'] = time();
-                $_SESSION['last_activity'] = time();
-                $_SESSION['user_ip'] = $user_ip;
-                $_SESSION['user_agent'] = $user_agent;
-                $_SESSION['device_browser'] = $device_info['browser'];
-                $_SESSION['device_os'] = $device_info['os'];
-                $_SESSION['device_platform'] = $device_info['platform'];
-                $_SESSION['session_token'] = $session_token;
-
-                // Lưu thông tin session active vào database
-                self::saveActiveSession($student->ID, $session_token, $user_ip, $device_info, $user_agent);
-
-                return array(
-                    'success' => true,
-                    'student_id' => $student->ID,
-                    'student_name' => $student_name,
-                    'student_of' => $student_of,
-                    'user_ip' => $user_ip,
-                    'device_info' => $device_info,
-                    'message' => 'Login successful'
-                );
+            if (StudentValidator::verifyPassword($student, $password)) {
+                return self::performLogin($student);
             }
         }
 
@@ -192,42 +111,68 @@ class StudentSessionManager
     }
 
     /**
+     * Thực hiện đăng nhập sau khi validate thành công
+     * 
+     * @param object $student Student post object
+     * @return array Kết quả đăng nhập
+     */
+    private static function performLogin($student)
+    {
+        // Lấy thông tin student và thiết bị
+        $student_data = StudentValidator::getStudentData($student);
+        $user_ip = DeviceDetection::getUserIP();
+        $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+        $device_info = DeviceDetection::parseUserAgent($user_agent);
+
+        // Tạo session token mới và hủy session khác
+        $session_token = SessionStorage::generateSessionToken();
+        SessionStorage::invalidateOtherSessions($student_data['student_id'], $session_token);
+
+        // Set session data
+        $device_data = array_merge($device_info, array(
+            'user_ip' => $user_ip,
+            'user_agent' => $user_agent
+        ));
+        SessionHelper::setSessionData($student_data, $device_data, $session_token);
+
+        // Lưu session vào database
+        SessionStorage::saveActiveSession(
+            $student_data['student_id'],
+            $session_token,
+            $user_ip,
+            $device_info,
+            $user_agent
+        );
+
+        return array(
+            'success' => true,
+            'student_id' => $student_data['student_id'],
+            'student_name' => $student_data['student_name'],
+            'student_of' => $student_data['student_of'],
+            'user_ip' => $user_ip,
+            'device_info' => $device_info,
+            'message' => 'Login successful'
+        );
+    }
+
+    /**
      * Đăng xuất student - xóa session
      * 
      * @return array Kết quả đăng xuất
      */
     public static function logout()
     {
-        self::ensureSessionStarted();
+        if (SessionHelper::hasSessionData()) {
+            $session_data = SessionHelper::getSessionData();
 
-        // Lấy thông tin để xóa khỏi database
-        $student_id = isset($_SESSION[self::SESSION_KEY]) ? intval($_SESSION[self::SESSION_KEY]) : 0;
-        $session_token = isset($_SESSION['session_token']) ? $_SESSION['session_token'] : '';
-
-        // Xóa session khỏi database
-        if ($student_id > 0 && !empty($session_token)) {
-            $active_sessions_key = 'student_active_sessions_' . $student_id;
-            delete_option($active_sessions_key);
+            // Xóa session khỏi database
+            if ($session_data['student_id'] > 0) {
+                SessionStorage::removeSessionFromDatabase($session_data['student_id']);
+            }
         }
 
-        // Xóa tất cả student session data
-        $session_keys_to_remove = array(
-            self::SESSION_KEY,
-            'student_name',
-            'student_of',
-            'login_time',
-            'last_activity',
-            'user_ip',
-            'user_agent',
-            'device_browser',
-            'device_os',
-            'device_platform',
-            'session_token'
-        );
-
-        foreach ($session_keys_to_remove as $key) {
-            unset($_SESSION[$key]);
-        }
+        // Xóa tất cả session data local
+        SessionHelper::clearAllSessionKeys();
 
         return array(
             'success' => true,
@@ -240,26 +185,7 @@ class StudentSessionManager
      */
     private static function clearSession()
     {
-        self::ensureSessionStarted();
-
-        // Xóa tất cả student session data
-        $session_keys_to_remove = array(
-            self::SESSION_KEY,
-            'student_name',
-            'student_of',
-            'login_time',
-            'last_activity',
-            'user_ip',
-            'user_agent',
-            'device_browser',
-            'device_os',
-            'device_platform',
-            'session_token'
-        );
-
-        foreach ($session_keys_to_remove as $key) {
-            unset($_SESSION[$key]);
-        }
+        SessionHelper::clearAllSessionKeys();
     }
 
     /**
@@ -275,31 +201,7 @@ class StudentSessionManager
             return null;
         }
 
-        $student_post = get_post($session['student_id']);
-
-        if (!$student_post || $student_post->post_type !== self::STUDENT_POST_TYPE) {
-            return null;
-        }
-
-        // Lấy thông tin meta của student
-        $student_data = array(
-            'id' => $student_post->ID,
-            'name' => $student_post->post_title,
-            'username' => get_post_meta($student_post->ID, self::USERNAME_META_KEY, true),
-            'post_date' => $student_post->post_date,
-            'post_status' => $student_post->post_status,
-        );
-
-        // Có thể thêm các meta fields khác nếu cần
-        $custom_fields = array('student_email', 'student_phone', 'student_of');
-        foreach ($custom_fields as $field) {
-            $value = get_post_meta($student_post->ID, $field, true);
-            if (!empty($value)) {
-                $student_data[$field] = $value;
-            }
-        }
-
-        return $student_data;
+        return StudentValidator::getCurrentStudentData($session['student_id']);
     }
 
     /**
@@ -317,14 +219,7 @@ class StudentSessionManager
             return false;
         }
 
-        // Logic kiểm tra quyền truy cập có thể customize tùy theo yêu cầu
-        // Ví dụ: kiểm tra student có thuộc class này không
-        if ($resource_type === 'school') {
-            $student_of = get_post_meta($session['student_id'], 'student_of', true);
-            return !empty($student_of) && intval($student_of) === intval($resource_id);
-        }
-
-        return true; // Default cho phép truy cập
+        return StudentValidator::hasAccessToResource($session['student_id'], $resource_id, $resource_type);
     }
 
     /**
@@ -355,214 +250,7 @@ class StudentSessionManager
      */
     public static function getSessionStats()
     {
-        self::ensureSessionStarted();
-
-        return array(
-            'session_id' => session_id(),
-            'session_status' => session_status(),
-            'logged_in_student' => isset($_SESSION[self::SESSION_KEY]) ? $_SESSION[self::SESSION_KEY] : 0,
-            'all_session_keys' => array_keys($_SESSION),
-            'session_cookie_params' => session_get_cookie_params(),
-        );
+        return SessionHelper::getSessionStats();
     }
 
-    /**
-     * Lấy địa chỉ IP của user (xử lý cả proxy và load balancer)
-     * 
-     * @return string IP address
-     */
-    private static function getUserIP()
-    {
-        $ip_keys = array(
-            'HTTP_CF_CONNECTING_IP',     // Cloudflare
-            'HTTP_CLIENT_IP',            // Proxy
-            'HTTP_X_FORWARDED_FOR',      // Load balancer/proxy
-            'HTTP_X_FORWARDED',          // Proxy
-            'HTTP_X_CLUSTER_CLIENT_IP',  // Cluster
-            'HTTP_FORWARDED_FOR',        // Proxy
-            'HTTP_FORWARDED',            // Proxy
-            'REMOTE_ADDR'                // Standard
-        );
-
-        foreach ($ip_keys as $key) {
-            if (!empty($_SERVER[$key])) {
-                $ip = trim($_SERVER[$key]);
-                // Nếu có nhiều IP (qua proxy), lấy IP đầu tiên
-                if (strpos($ip, ',') !== false) {
-                    $ip = explode(',', $ip)[0];
-                }
-                $ip = trim($ip);
-                // Validate IP
-                if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                    return $ip;
-                }
-            }
-        }
-
-        // Fallback to REMOTE_ADDR nếu không tìm thấy public IP
-        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
-    }
-
-    /**
-     * Parse User Agent để lấy thông tin trình duyệt và hệ điều hành
-     * 
-     * @param string $user_agent User agent string
-     * @return array Thông tin thiết bị
-     */
-    private static function parseUserAgent($user_agent)
-    {
-        if (empty($user_agent)) {
-            return array(
-                'browser' => 'Unknown',
-                'os' => 'Unknown',
-                'platform' => 'Unknown'
-            );
-        }
-
-        // Detect Browser
-        $browser = 'Unknown';
-        if (preg_match('/Edge\/([0-9\.]+)/', $user_agent)) {
-            $browser = 'Microsoft Edge';
-        } elseif (preg_match('/Chrome\/([0-9\.]+)/', $user_agent)) {
-            $browser = 'Google Chrome';
-        } elseif (preg_match('/Firefox\/([0-9\.]+)/', $user_agent)) {
-            $browser = 'Mozilla Firefox';
-        } elseif (preg_match('/Safari\/([0-9\.]+)/', $user_agent) && !preg_match('/Chrome/', $user_agent)) {
-            $browser = 'Safari';
-        } elseif (preg_match('/Opera\/([0-9\.]+)/', $user_agent) || preg_match('/OPR\/([0-9\.]+)/', $user_agent)) {
-            $browser = 'Opera';
-        } elseif (preg_match('/MSIE ([0-9\.]+)/', $user_agent) || preg_match('/Trident\//', $user_agent)) {
-            $browser = 'Internet Explorer';
-        }
-
-        // Detect Operating System
-        $os = 'Unknown';
-        if (preg_match('/Windows NT 10/', $user_agent)) {
-            $os = 'Windows 10';
-        } elseif (preg_match('/Windows NT 6\.3/', $user_agent)) {
-            $os = 'Windows 8.1';
-        } elseif (preg_match('/Windows NT 6\.2/', $user_agent)) {
-            $os = 'Windows 8';
-        } elseif (preg_match('/Windows NT 6\.1/', $user_agent)) {
-            $os = 'Windows 7';
-        } elseif (preg_match('/Windows NT/', $user_agent)) {
-            $os = 'Windows';
-        } elseif (preg_match('/Mac OS X ([0-9_\.]+)/', $user_agent, $matches)) {
-            $os = 'Mac OS X ' . str_replace('_', '.', $matches[1]);
-        } elseif (preg_match('/iPhone OS ([0-9_\.]+)/', $user_agent, $matches)) {
-            $os = 'iOS ' . str_replace('_', '.', $matches[1]);
-        } elseif (preg_match('/Android ([0-9\.]+)/', $user_agent, $matches)) {
-            $os = 'Android ' . $matches[1];
-        } elseif (preg_match('/Linux/', $user_agent)) {
-            $os = 'Linux';
-        }
-
-        // Detect Platform/Device Type
-        $platform = 'Desktop';
-        if (preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/', $user_agent)) {
-            if (preg_match('/iPad/', $user_agent)) {
-                $platform = 'Tablet';
-            } else {
-                $platform = 'Mobile';
-            }
-        }
-
-        return array(
-            'browser' => $browser,
-            'os' => $os,
-            'platform' => $platform
-        );
-    }
-
-    /**
-     * Tạo session token duy nhất
-     * 
-     * @return string Session token
-     */
-    private static function generateSessionToken()
-    {
-        return wp_generate_password(32, false) . '_' . time();
-    }
-
-    /**
-     * Hủy tất cả session khác của student (chỉ giữ lại session hiện tại)
-     * 
-     * @param int $student_id ID của student
-     * @param string $current_token Token của session hiện tại (không bị hủy)
-     */
-    private static function invalidateOtherSessions($student_id, $current_token)
-    {
-        $active_sessions_key = 'student_active_sessions_' . $student_id;
-        $active_sessions = get_option($active_sessions_key, array());
-
-        // Xóa tất cả session cũ (thiết bị khác sẽ bị logout)
-        if (!empty($active_sessions)) {
-            delete_option($active_sessions_key);
-        }
-    }
-
-    /**
-     * Lưu thông tin session active vào database
-     * 
-     * @param int $student_id ID của student
-     * @param string $session_token Session token
-     * @param string $user_ip IP address
-     * @param array $device_info Thông tin thiết bị
-     * @param string $user_agent User agent string
-     */
-    private static function saveActiveSession($student_id, $session_token, $user_ip, $device_info, $user_agent)
-    {
-        $active_sessions_key = 'student_active_sessions_' . $student_id;
-
-        $session_data = array(
-            'token' => $session_token,
-            'ip' => $user_ip,
-            'user_agent' => $user_agent,
-            'browser' => $device_info['browser'],
-            'os' => $device_info['os'],
-            'platform' => $device_info['platform'],
-            'login_time' => time(),
-            'last_activity' => time()
-        );
-
-        // Chỉ lưu session hiện tại (single device)
-        $active_sessions = array($session_token => $session_data);
-        update_option($active_sessions_key, $active_sessions);
-    }
-
-    /**
-     * Kiểm tra tính hợp lệ của session hiện tại
-     * 
-     * @param int $student_id ID của student
-     * @param string $session_token Session token cần kiểm tra
-     * @return bool True nếu session hợp lệ
-     */
-    private static function isValidSession($student_id, $session_token)
-    {
-        if (empty($session_token)) {
-            return false;
-        }
-
-        $active_sessions_key = 'student_active_sessions_' . $student_id;
-        $active_sessions = get_option($active_sessions_key, array());
-
-        return isset($active_sessions[$session_token]);
-    }
-
-    /**
-     * Cập nhật last activity cho session
-     * 
-     * @param int $student_id ID của student  
-     * @param string $session_token Session token
-     */
-    private static function updateSessionActivity($student_id, $session_token)
-    {
-        $active_sessions_key = 'student_active_sessions_' . $student_id;
-        $active_sessions = get_option($active_sessions_key, array());
-
-        if (isset($active_sessions[$session_token])) {
-            $active_sessions[$session_token]['last_activity'] = time();
-            update_option($active_sessions_key, $active_sessions);
-        }
-    }
 }
