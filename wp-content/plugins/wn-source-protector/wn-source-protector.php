@@ -102,6 +102,96 @@ function wnsp_check_login_status()
 }
 
 /**
+ * Log debug information for view counting (optional)
+ */
+function wnsp_log_view_count($entity_id, $action, $count = null)
+{
+    // Uncomment for debugging
+    // error_log("WNSP View Count - Entity ID: $entity_id, Action: $action" . ($count !== null ? ", Count: $count" : ""));
+}
+
+/**
+ * Increment view count for entity based on URL parameter
+ * Supports URL patterns like: source/khoi6/k6cd1t1/?33403
+ * Only counts once per session to prevent duplicate counting
+ */
+function wnsp_increment_entity_view_count()
+{
+    $entity_id = 0;
+    
+    // Check for entity ID in query string (pattern: /?33403)
+    $query_string = isset($_SERVER['QUERY_STRING']) ? trim($_SERVER['QUERY_STRING']) : '';
+    if (!empty($query_string) && is_numeric($query_string)) {
+        $entity_id = intval($query_string);
+    }
+    
+    // Also check for 'id' parameter
+    if ($entity_id === 0 && isset($_GET['id'])) {
+        $entity_id = intval($_GET['id']);
+    }
+    
+    // Also check for 'entity_id' parameter
+    if ($entity_id === 0 && isset($_GET['entity_id'])) {
+        $entity_id = intval($_GET['entity_id']);
+    }
+    
+    // If we have a valid entity ID, increment the view count
+    if ($entity_id > 0) {
+        $should_count = true;
+        
+        // Only use session tracking for web requests (not CLI)
+        if (php_sapi_name() !== 'cli' && isset($_SERVER['HTTP_HOST'])) {
+            // Start session if not already started
+            if (session_status() === PHP_SESSION_NONE) {
+                @session_start();
+            }
+            
+            // Check if we've already counted this entity in this session
+            $session_key = 'wnsp_viewed_entities';
+            if (!isset($_SESSION[$session_key])) {
+                $_SESSION[$session_key] = array();
+            }
+            
+            // Only count if not already viewed in this session
+            if (in_array($entity_id, $_SESSION[$session_key])) {
+                $should_count = false;
+            }
+        }
+        
+        if ($should_count) {
+            // Check if WordPress functions are available
+            if (function_exists('get_post') && function_exists('get_post_meta') && function_exists('update_post_meta')) {
+                // Verify this is actually an entity post
+                $post = get_post($entity_id);
+                if ($post && $post->post_type === 'entity') {
+                    // Get current count
+                    $current_count = get_post_meta($entity_id, 'countuser', true);
+                    $current_count = is_numeric($current_count) ? intval($current_count) : 0;
+                    
+                    // Increment and update
+                    $new_count = $current_count + 1;
+                    update_post_meta($entity_id, 'countuser', $new_count);
+                    
+                    // Log the increment
+                    wnsp_log_view_count($entity_id, 'incremented', $new_count);
+                    
+                    // Mark as viewed in this session (only for web requests)
+                    if (php_sapi_name() !== 'cli' && isset($_SERVER['HTTP_HOST']) && isset($_SESSION[$session_key])) {
+                        $_SESSION[$session_key][] = $entity_id;
+                    }
+                } else {
+                    wnsp_log_view_count($entity_id, 'invalid_post_type');
+                }
+            } else {
+                wnsp_log_view_count($entity_id, 'wordpress_functions_not_available');
+            }
+        } else {
+            wnsp_log_view_count($entity_id, 'already_viewed_in_session');
+        }
+    }
+}
+
+/**
  * Hàm chính: require_protect
  * Gọi ở đầu file tĩnh hoặc template để bảo vệ nội dung.
  */
@@ -134,6 +224,9 @@ function wnsp_require_protect()
     }
 
     // Logged in and group check passed
+    // Increment view count for entity if ID is provided in URL
+    wnsp_increment_entity_view_count();
+    
     return true;
 }
 

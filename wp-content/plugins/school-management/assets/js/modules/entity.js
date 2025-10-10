@@ -110,7 +110,7 @@ window.SchoolManagement.Entity = {
       '<div class="entity-item" data-entity-id="' + entity.id + '"';
 
     if (entity.link) {
-      entityHtml += ' data-entity-link="' + entity.link + '"';
+      entityHtml += ' data-entity-link="' + entity.link + "?" + entity.id + '"';
     }
 
     entityHtml += ">";
