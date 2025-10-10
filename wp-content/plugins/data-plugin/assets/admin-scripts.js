@@ -80,7 +80,6 @@ function switchImportType(type) {
   var generalTab = document.getElementById("generalTab");
   var studentTab = document.getElementById("studentTab");
 
-  console.log("🚀 ~ switchImportType ~ type:", type);
   if (type === "general") {
     generalSection.style.display = "block";
     studentSection.style.display = "none";

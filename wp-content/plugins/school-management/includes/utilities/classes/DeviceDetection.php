@@ -4,55 +4,37 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * Device Detection Class
- * Xử lý nhận diện thiết bị, trình duyệt, IP
- */
 class DeviceDetection
 {
-    /**
-     * Lấy địa chỉ IP của user (xử lý cả proxy và load balancer)
-     * 
-     * @return string IP address
-     */
     public static function getUserIP()
     {
         $ip_keys = array(
-            'HTTP_CF_CONNECTING_IP',     // Cloudflare
-            'HTTP_CLIENT_IP',            // Proxy
-            'HTTP_X_FORWARDED_FOR',      // Load balancer/proxy
-            'HTTP_X_FORWARDED',          // Proxy
-            'HTTP_X_CLUSTER_CLIENT_IP',  // Cluster
-            'HTTP_FORWARDED_FOR',        // Proxy
-            'HTTP_FORWARDED',            // Proxy
-            'REMOTE_ADDR'                // Standard
+            'HTTP_CF_CONNECTING_IP',
+            'HTTP_CLIENT_IP',
+            'HTTP_X_FORWARDED_FOR',
+            'HTTP_X_FORWARDED',
+            'HTTP_X_CLUSTER_CLIENT_IP',
+            'HTTP_FORWARDED_FOR',
+            'HTTP_FORWARDED',
+            'REMOTE_ADDR'
         );
 
         foreach ($ip_keys as $key) {
             if (!empty($_SERVER[$key])) {
                 $ip = trim($_SERVER[$key]);
-                // Nếu có nhiều IP (qua proxy), lấy IP đầu tiên
                 if (strpos($ip, ',') !== false) {
                     $ip = explode(',', $ip)[0];
                 }
                 $ip = trim($ip);
-                // Validate IP
                 if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
                     return $ip;
                 }
             }
         }
 
-        // Fallback to REMOTE_ADDR nếu không tìm thấy public IP
         return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
     }
 
-    /**
-     * Parse User Agent để lấy thông tin trình duyệt và hệ điều hành
-     * 
-     * @param string $user_agent User agent string
-     * @return array Thông tin thiết bị
-     */
     public static function parseUserAgent($user_agent)
     {
         if (empty($user_agent)) {
@@ -70,12 +52,6 @@ class DeviceDetection
         );
     }
 
-    /**
-     * Nhận diện trình duyệt
-     * 
-     * @param string $user_agent User agent string
-     * @return string Browser name
-     */
     private static function detectBrowser($user_agent)
     {
         if (preg_match('/Edge\/([0-9\.]+)/', $user_agent)) {
@@ -95,12 +71,6 @@ class DeviceDetection
         return 'Unknown';
     }
 
-    /**
-     * Nhận diện hệ điều hành
-     * 
-     * @param string $user_agent User agent string
-     * @return string OS name
-     */
     private static function detectOS($user_agent)
     {
         if (preg_match('/Windows NT 10/', $user_agent)) {
@@ -126,12 +96,6 @@ class DeviceDetection
         return 'Unknown';
     }
 
-    /**
-     * Nhận diện loại thiết bị
-     * 
-     * @param string $user_agent User agent string
-     * @return string Platform type
-     */
     private static function detectPlatform($user_agent)
     {
         if (preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/', $user_agent)) {

@@ -10,16 +10,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * Path tới session-manager
- */
 if (!defined('WNSP_SM_PATH')) {
     define('WNSP_SM_PATH', ABSPATH . 'wp-content/plugins/school-management/includes/utilities/session-manager.php');
 }
 
-/**
- * Load StudentSessionManager class
- */
 function wnsp_ensure_session_manager_loaded()
 {
     if (file_exists(WNSP_SM_PATH)) {
@@ -27,10 +21,6 @@ function wnsp_ensure_session_manager_loaded()
     }
 }
 
-/**
- * Detect required student group based on the current request path.
- * Returns a string like 'Khối 6', 'Khối 7', 'Khối 8' or empty when no restriction.
- */
 function wnsp_get_required_group_from_request()
 {
     $uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
@@ -51,10 +41,6 @@ function wnsp_get_required_group_from_request()
     return '';
 }
 
-/**
- * Check whether the current logged-in student belongs to the required group for this request.
- * Returns true when allowed, false when access should be denied.
- */
 function wnsp_check_group_access()
 {
     $required = wnsp_get_required_group_from_request();
@@ -76,9 +62,6 @@ function wnsp_check_group_access()
     return $student_of === $required;
 }
 
-/**
- * Sanitize text field nếu function WordPress không có
- */
 function wnsp_sanitize_text_field($str)
 {
     if (function_exists('sanitize_text_field')) {
@@ -86,9 +69,6 @@ function wnsp_sanitize_text_field($str)
     }
     return trim(strip_tags($str));
 }
-/**
- * Kiểm tra login status bằng StudentSessionManager
- */
 function wnsp_check_login_status()
 {
     wnsp_ensure_session_manager_loaded();
@@ -101,63 +81,54 @@ function wnsp_check_login_status()
     return $session_data['logged_in'];
 }
 
-/**
- * Log debug information for view counting (optional)
- */
 function wnsp_log_view_count($entity_id, $action, $count = null)
 {
     // Uncomment for debugging
-    // error_log("WNSP View Count - Entity ID: $entity_id, Action: $action" . ($count !== null ? ", Count: $count" : ""));
 }
 
-/**
- * Increment view count for entity based on URL parameter
- * Supports URL patterns like: source/khoi6/k6cd1t1/?33403
- * Only counts once per session to prevent duplicate counting
- */
 function wnsp_increment_entity_view_count()
 {
     $entity_id = 0;
-    
+
     // Check for entity ID in query string (pattern: /?33403)
     $query_string = isset($_SERVER['QUERY_STRING']) ? trim($_SERVER['QUERY_STRING']) : '';
     if (!empty($query_string) && is_numeric($query_string)) {
         $entity_id = intval($query_string);
     }
-    
+
     // Also check for 'id' parameter
     if ($entity_id === 0 && isset($_GET['id'])) {
         $entity_id = intval($_GET['id']);
     }
-    
+
     // Also check for 'entity_id' parameter
     if ($entity_id === 0 && isset($_GET['entity_id'])) {
         $entity_id = intval($_GET['entity_id']);
     }
-    
+
     // If we have a valid entity ID, increment the view count
     if ($entity_id > 0) {
         $should_count = true;
-        
+
         // Only use session tracking for web requests (not CLI)
         if (php_sapi_name() !== 'cli' && isset($_SERVER['HTTP_HOST'])) {
             // Start session if not already started
             if (session_status() === PHP_SESSION_NONE) {
                 @session_start();
             }
-            
+
             // Check if we've already counted this entity in this session
             $session_key = 'wnsp_viewed_entities';
             if (!isset($_SESSION[$session_key])) {
                 $_SESSION[$session_key] = array();
             }
-            
+
             // Only count if not already viewed in this session
             if (in_array($entity_id, $_SESSION[$session_key])) {
                 $should_count = false;
             }
         }
-        
+
         if ($should_count) {
             // Check if WordPress functions are available
             if (function_exists('get_post') && function_exists('get_post_meta') && function_exists('update_post_meta')) {
@@ -167,14 +138,14 @@ function wnsp_increment_entity_view_count()
                     // Get current count
                     $current_count = get_post_meta($entity_id, 'countuser', true);
                     $current_count = is_numeric($current_count) ? intval($current_count) : 0;
-                    
+
                     // Increment and update
                     $new_count = $current_count + 1;
                     update_post_meta($entity_id, 'countuser', $new_count);
-                    
+
                     // Log the increment
                     wnsp_log_view_count($entity_id, 'incremented', $new_count);
-                    
+
                     // Mark as viewed in this session (only for web requests)
                     if (php_sapi_name() !== 'cli' && isset($_SERVER['HTTP_HOST']) && isset($_SESSION[$session_key])) {
                         $_SESSION[$session_key][] = $entity_id;
@@ -191,10 +162,6 @@ function wnsp_increment_entity_view_count()
     }
 }
 
-/**
- * Hàm chính: require_protect
- * Gọi ở đầu file tĩnh hoặc template để bảo vệ nội dung.
- */
 function wnsp_require_protect()
 {
     // Xử lý login request nếu có
@@ -226,13 +193,10 @@ function wnsp_require_protect()
     // Logged in and group check passed
     // Increment view count for entity if ID is provided in URL
     wnsp_increment_entity_view_count();
-    
+
     return true;
 }
 
-/**
- * Xử lý AJAX login từ popup
- */
 function wnsp_handle_ajax_login()
 {
     header('Content-Type: application/json');
@@ -274,9 +238,6 @@ function wnsp_handle_ajax_login()
     }
 }
 
-/**
- * Render trang login popup
- */
 function wnsp_render_login_page()
 {
     // Lấy thông tin lỗi từ session nếu có
@@ -353,10 +314,6 @@ function wnsp_render_login_page()
     <?php
 }
 
-/**
- * Shortcode [wnsp_protect]...[/wnsp_protect]
- * Bọc nội dung cần bảo vệ trong bài/post.
- */
 function wnsp_shortcode_protect($atts, $content = null)
 {
     if (wnsp_check_login_status()) {
@@ -371,9 +328,6 @@ function wnsp_shortcode_protect($atts, $content = null)
 }
 add_shortcode('wnsp_protect', 'wnsp_shortcode_protect');
 
-/**
- * CSS styles cho login form
- */
 function wnsp_get_login_styles()
 {
     return '
@@ -530,9 +484,6 @@ function wnsp_get_login_styles()
     ';
 }
 
-/**
- * JavaScript cho login form
- */
 function wnsp_get_login_script()
 {
     return '
@@ -631,17 +582,11 @@ function wnsp_get_login_script()
     ';
 }
 
-/**
- * Helper: kiểm tra và trả true/false (có thể dùng trong template)
- */
 function wnsp_is_logged_in()
 {
     return wnsp_check_login_status();
 }
 
-/**
- * Admin notice nếu không tìm thấy session-manager (giúp debug)
- */
 function wnsp_admin_check_sm()
 {
     if (!current_user_can('manage_options'))

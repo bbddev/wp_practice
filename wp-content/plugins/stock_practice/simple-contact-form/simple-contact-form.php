@@ -121,7 +121,6 @@ class SimpleContactForm
                 $('#simple-contact-form__form').submit(function (event) {
                     event.preventDefault(); // Prevent the default form submission
                     var form = $(this).serialize(); // Serialize form data
-                    console.log("🚀 ~ SimpleContactForm ~ load_scripts ~ form:", form)
                     $.ajax({
                         method: 'post',
                         url: '<?php echo get_rest_url(null, 'simple-contact-form/v1/send-email'); ?>',

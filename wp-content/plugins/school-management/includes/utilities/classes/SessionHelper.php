@@ -4,15 +4,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-/**
- * Session Helper Class
- * Các utility methods hỗ trợ cho session
- */
 class SessionHelper
 {
-    /**
-     * Các key session cần xóa khi logout
-     */
     const SESSION_KEYS_TO_REMOVE = array(
         'school_management_student_id',
         'student_name',
@@ -27,9 +20,6 @@ class SessionHelper
         'session_token'
     );
 
-    /**
-     * Khởi tạo PHP session nếu chưa có
-     */
     public static function ensureSessionStarted()
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -37,9 +27,6 @@ class SessionHelper
         }
     }
 
-    /**
-     * Xóa tất cả session keys
-     */
     public static function clearAllSessionKeys()
     {
         self::ensureSessionStarted();
@@ -49,13 +36,6 @@ class SessionHelper
         }
     }
 
-    /**
-     * Set session data sau khi đăng nhập thành công
-     * 
-     * @param array $student_data Thông tin student
-     * @param array $device_info Thông tin thiết bị
-     * @param string $session_token Session token
-     */
     public static function setSessionData($student_data, $device_info, $session_token)
     {
         self::ensureSessionStarted();
@@ -73,11 +53,6 @@ class SessionHelper
         $_SESSION['session_token'] = $session_token;
     }
 
-    /**
-     * Lấy session data hiện tại
-     * 
-     * @return array Session data
-     */
     public static function getSessionData()
     {
         self::ensureSessionStarted();
@@ -95,22 +70,12 @@ class SessionHelper
         );
     }
 
-    /**
-     * Kiểm tra xem có session data hay không
-     * 
-     * @return bool True nếu có session
-     */
     public static function hasSessionData()
     {
         self::ensureSessionStarted();
         return isset($_SESSION['school_management_student_id']) && $_SESSION['school_management_student_id'] > 0;
     }
 
-    /**
-     * Lấy session statistics
-     * 
-     * @return array Session statistics
-     */
     public static function getSessionStats()
     {
         self::ensureSessionStarted();
