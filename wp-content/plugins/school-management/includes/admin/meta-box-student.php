@@ -31,6 +31,8 @@ function render_student_meta_box($post)
     $student_of = get_post_meta($post->ID, 'student_of', true); // Lớp mà học sinh thuộc về, môn mà học sinh đăng ký
     $student_link = get_post_meta($post->ID, 'student_link', true); // quản lý thông tin học tập, điểm số
     $student_image = get_post_meta($post->ID, 'student_image', true); // Hình ảnh học sinh
+    $study_count = get_post_meta($post->ID, 'study_count', true); // Số lần học
+    $study_lesson_count = get_post_meta($post->ID, 'study_lesson_count', true); // Số bài học đã học
 
     $classes = get_posts(array(
         'post_type' => 'school',
@@ -59,10 +61,20 @@ function render_student_meta_box($post)
             <?php endforeach; ?>
         </select>
     </p>
+
     <p>
-        <label for="student_link">Student home link:</label>
-        <input type="text" id="student_link" name="student_link" value="<?php echo esc_attr($student_link); ?>"
-            style="width: 100%;" />
+        <label for="study_count">Số lần học:</label>
+        <input type="number" id="study_count" name="study_count" value="<?php echo esc_attr($study_count); ?>"
+            style="width: 100%;" min="0" />
+    </p>
+    <p>
+        <label for="study_lesson_count">Số bài học đã học:</label>
+        <input type="number" id="study_lesson_count" name="study_lesson_count"
+            value="<?php echo esc_attr($study_lesson_count); ?>" style="width: 100%;" min="0" />
+    </p>
+    <label for="student_link">Student home link:</label>
+    <input type="text" id="student_link" name="student_link" value="<?php echo esc_attr($student_link); ?>"
+        style="width: 100%;" />
     </p>
     <p>
         <label for="student_image">Hình:</label>

@@ -83,4 +83,10 @@ function save_student_meta($post_id)
     if (isset($_POST['student_image'])) {
         update_post_meta($post_id, 'student_image', sanitize_text_field($_POST['student_image']));
     }
+    if (isset($_POST['study_count'])) {
+        update_post_meta($post_id, 'study_count', intval($_POST['study_count']));
+    }
+    if (isset($_POST['study_lesson_count'])) {
+        update_post_meta($post_id, 'study_lesson_count', intval($_POST['study_lesson_count']));
+    }
 }

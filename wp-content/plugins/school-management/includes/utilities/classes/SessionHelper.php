@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
 class SessionHelper
 {
     const SESSION_KEYS_TO_REMOVE = array(
-        'school_management_student_id',
+        'student_id',
         'student_name',
         'student_of',
         'login_time',
@@ -40,7 +40,7 @@ class SessionHelper
     {
         self::ensureSessionStarted();
 
-        $_SESSION['school_management_student_id'] = $student_data['student_id'];
+        $_SESSION['student_id'] = $student_data['student_id'];
         $_SESSION['student_name'] = $student_data['student_name'];
         $_SESSION['student_of'] = $student_data['student_of'];
         $_SESSION['login_time'] = time();
@@ -58,7 +58,7 @@ class SessionHelper
         self::ensureSessionStarted();
 
         return array(
-            'student_id' => isset($_SESSION['school_management_student_id']) ? intval($_SESSION['school_management_student_id']) : 0,
+            'student_id' => isset($_SESSION['student_id']) ? intval($_SESSION['student_id']) : 0,
             'session_token' => isset($_SESSION['session_token']) ? $_SESSION['session_token'] : '',
             'student_name' => isset($_SESSION['student_name']) ? $_SESSION['student_name'] : '',
             'student_of' => isset($_SESSION['student_of']) ? $_SESSION['student_of'] : '',
@@ -73,7 +73,7 @@ class SessionHelper
     public static function hasSessionData()
     {
         self::ensureSessionStarted();
-        return isset($_SESSION['school_management_student_id']) && $_SESSION['school_management_student_id'] > 0;
+        return isset($_SESSION['student_id']) && $_SESSION['student_id'] > 0;
     }
 
     public static function getSessionStats()
@@ -83,7 +83,7 @@ class SessionHelper
         return array(
             'session_id' => session_id(),
             'session_status' => session_status(),
-            'logged_in_student' => isset($_SESSION['school_management_student_id']) ? $_SESSION['school_management_student_id'] : 0,
+            'logged_in_student' => isset($_SESSION['student_id']) ? $_SESSION['student_id'] : 0,
             'all_session_keys' => array_keys($_SESSION),
             'session_cookie_params' => session_get_cookie_params(),
         );
