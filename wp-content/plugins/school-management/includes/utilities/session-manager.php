@@ -16,7 +16,7 @@ SessionAutoloader::init();
  */
 class StudentSessionManager implements SessionInterface
 {
-    const SESSION_KEY = 'school_management_student_id';
+    const SESSION_KEY = 'student_id';
 
     public static function checkSession()
     {

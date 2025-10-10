@@ -83,11 +83,92 @@ function wnsp_check_login_status()
 
 function wnsp_log_view_count($entity_id, $action, $count = null)
 {
-    // Uncomment for debugging
+    // Enable debugging for study count updates
+    if (strpos($action, 'student') !== false) {
+        error_log("WNSP Log: Entity {$entity_id} - Action: {$action} - Data: " . print_r($count, true));
+    }
+}
+
+function wnsp_update_student_study_counts($entity_id, $is_new_lesson = false)
+{
+    // Debug output
+    echo '<script>console.log("wnsp_update_student_study_counts called with entity_id: ' . $entity_id . ', is_new_lesson: ' . ($is_new_lesson ? 'true' : 'false') . '");</script>';
+
+    // Ensure session manager is loaded
+    wnsp_ensure_session_manager_loaded();
+
+    if (!class_exists('StudentSessionManager')) {
+        echo '<script>console.log("StudentSessionManager class not found");</script>';
+        return false;
+    }
+
+    // Get current session data
+    $session_data = StudentSessionManager::checkSession();
+
+    if (!$session_data['logged_in'] || empty($session_data['student_id'])) {
+        echo '<script>console.log("Student not logged in or no student_id. Session data:", ' . json_encode($session_data) . ');</script>';
+        return false;
+    }
+
+    $student_id = intval($session_data['student_id']);
+    echo '<script>console.log("Processing student_id: ' . $student_id . '");</script>';
+
+    // Check if WordPress functions are available
+    if (!function_exists('get_post') || !function_exists('get_post_meta') || !function_exists('update_post_meta')) {
+        echo '<script>console.log("WordPress functions not available");</script>';
+        return false;
+    }
+
+    // Verify student exists and is of correct post type
+    $student_post = get_post($student_id);
+    if (!$student_post || $student_post->post_type !== 'student') {
+        echo '<script>console.log("Student post not found or wrong post type. Post type: ' . ($student_post ? $student_post->post_type : 'null') . '");</script>';
+        return false;
+    }
+
+    // Always increment study_count (every access)
+    $current_study_count = get_post_meta($student_id, 'study_count', true);
+    $current_study_count = is_numeric($current_study_count) ? intval($current_study_count) : 0;
+    $new_study_count = $current_study_count + 1;
+    $update_result = update_post_meta($student_id, 'study_count', $new_study_count);
+
+    echo '<script>console.log("Study count update: ' . $current_study_count . ' -> ' . $new_study_count . ', Result: ' . ($update_result ? 'success' : 'failed') . '");</script>';
+
+    // Only increment study_lesson_count for new lessons (first time viewing in this session)
+    if ($is_new_lesson) {
+        $current_lesson_count = get_post_meta($student_id, 'study_lesson_count', true);
+        $current_lesson_count = is_numeric($current_lesson_count) ? intval($current_lesson_count) : 0;
+        $new_lesson_count = $current_lesson_count + 1;
+        $lesson_update_result = update_post_meta($student_id, 'study_lesson_count', $new_lesson_count);
+
+        echo '<script>console.log("Study lesson count update: ' . $current_lesson_count . ' -> ' . $new_lesson_count . ', Result: ' . ($lesson_update_result ? 'success' : 'failed') . '");</script>';
+
+        // Log the update (for debugging if needed)
+        wnsp_log_view_count($entity_id, 'student_counts_updated', array(
+            'student_id' => $student_id,
+            'study_count' => $new_study_count,
+            'study_lesson_count' => $new_lesson_count,
+            'is_new_lesson' => true
+        ));
+    } else {
+        echo '<script>console.log("Skipping lesson count update (not new lesson)");</script>';
+
+        // Log only study_count update
+        wnsp_log_view_count($entity_id, 'student_study_count_updated', array(
+            'student_id' => $student_id,
+            'study_count' => $new_study_count,
+            'is_new_lesson' => false
+        ));
+    }
+
+    echo '<script>console.log("wnsp_update_student_study_counts completed successfully");</script>';
+    return true;
 }
 
 function wnsp_increment_entity_view_count()
 {
+    echo '<script>console.log("wnsp_increment_entity_view_count called");</script>';
+
     $entity_id = 0;
 
     // Check for entity ID in query string (pattern: /?33403)
@@ -106,9 +187,12 @@ function wnsp_increment_entity_view_count()
         $entity_id = intval($_GET['entity_id']);
     }
 
+    echo '<script>console.log("Detected entity_id: ' . $entity_id . '");</script>';
+
     // If we have a valid entity ID, increment the view count
     if ($entity_id > 0) {
         $should_count = true;
+        $is_new_lesson = false; // Track if this is a new lesson for the student
 
         // Only use session tracking for web requests (not CLI)
         if (php_sapi_name() !== 'cli' && isset($_SERVER['HTTP_HOST'])) {
@@ -123,11 +207,21 @@ function wnsp_increment_entity_view_count()
                 $_SESSION[$session_key] = array();
             }
 
+            // Check if this is a new lesson (not viewed in this session)
+            if (!in_array($entity_id, $_SESSION[$session_key])) {
+                $is_new_lesson = true;
+                echo '<script>console.log("New lesson detected: ' . $entity_id . '");</script>';
+            } else {
+                echo '<script>console.log("Already viewed lesson: ' . $entity_id . '");</script>';
+            }
+
             // Only count if not already viewed in this session
             if (in_array($entity_id, $_SESSION[$session_key])) {
                 $should_count = false;
             }
         }
+
+        echo '<script>console.log("Should count entity: ' . ($should_count ? 'true' : 'false') . ', Is new lesson: ' . ($is_new_lesson ? 'true' : 'false') . '");</script>';
 
         if ($should_count) {
             // Check if WordPress functions are available
@@ -135,6 +229,8 @@ function wnsp_increment_entity_view_count()
                 // Verify this is actually an entity post
                 $post = get_post($entity_id);
                 if ($post && $post->post_type === 'entity') {
+                    echo '<script>console.log("Valid entity post found");</script>';
+
                     // Get current count
                     $current_count = get_post_meta($entity_id, 'countuser', true);
                     $current_count = is_numeric($current_count) ? intval($current_count) : 0;
@@ -150,15 +246,27 @@ function wnsp_increment_entity_view_count()
                     if (php_sapi_name() !== 'cli' && isset($_SERVER['HTTP_HOST']) && isset($_SESSION[$session_key])) {
                         $_SESSION[$session_key][] = $entity_id;
                     }
+
+                    // Update student study counts if student is logged in
+                    echo '<script>console.log("Calling wnsp_update_student_study_counts");</script>';
+                    wnsp_update_student_study_counts($entity_id, $is_new_lesson);
                 } else {
+                    echo '<script>console.log("Invalid post type or post not found");</script>';
                     wnsp_log_view_count($entity_id, 'invalid_post_type');
                 }
             } else {
+                echo '<script>console.log("WordPress functions not available");</script>';
                 wnsp_log_view_count($entity_id, 'wordpress_functions_not_available');
             }
         } else {
+            echo '<script>console.log("Entity already counted, updating only study_count");</script>';
             wnsp_log_view_count($entity_id, 'already_viewed_in_session');
+
+            // Even if entity view was not counted, still update student study_count (but not study_lesson_count)
+            wnsp_update_student_study_counts($entity_id, false);
         }
+    } else {
+        echo '<script>console.log("No valid entity_id found");</script>';
     }
 }
 
@@ -604,3 +712,103 @@ function wnsp_admin_check_sm()
     }
 }
 add_action('admin_notices', 'wnsp_admin_check_sm');
+
+/**
+ * Test function to check student study counts
+ * Usage: Call this function to see current study counts for a student
+ */
+function wnsp_get_student_study_stats($student_id)
+{
+    if (!function_exists('get_post_meta') || !function_exists('get_post')) {
+        return array('error' => 'WordPress functions not available');
+    }
+
+    // Check if student post exists
+    $student_post = get_post($student_id);
+    if (!$student_post) {
+        return array('error' => 'Student post not found', 'student_id' => $student_id);
+    }
+
+    if ($student_post->post_type !== 'student') {
+        return array('error' => 'Post is not student type', 'student_id' => $student_id, 'post_type' => $student_post->post_type);
+    }
+
+    $study_count = get_post_meta($student_id, 'study_count', true);
+    $study_lesson_count = get_post_meta($student_id, 'study_lesson_count', true);
+
+    return array(
+        'student_id' => $student_id,
+        'post_title' => $student_post->post_title,
+        'post_status' => $student_post->post_status,
+        'study_count' => is_numeric($study_count) ? intval($study_count) : 0,
+        'study_lesson_count' => is_numeric($study_lesson_count) ? intval($study_lesson_count) : 0,
+        'raw_study_count' => $study_count,
+        'raw_study_lesson_count' => $study_lesson_count
+    );
+}
+
+/**
+ * Debug function to manually test the study count update
+ * This can be called for testing purposes
+ */
+function wnsp_test_study_count_update($entity_id, $student_id, $is_new_lesson = false)
+{
+    // Simulate session data for testing
+    if (session_status() === PHP_SESSION_NONE) {
+        @session_start();
+    }
+
+    // Store fake session data for testing
+    $_SESSION['wnsp_test_student_id'] = $student_id;
+
+    // Get stats before update
+    $before_stats = wnsp_get_student_study_stats($student_id);
+
+    // Call the update function
+    $result = wnsp_update_student_study_counts($entity_id, $is_new_lesson);
+
+    // Get stats after update
+    $after_stats = wnsp_get_student_study_stats($student_id);
+
+    return array(
+        'success' => $result,
+        'before' => $before_stats,
+        'after' => $after_stats,
+        'entity_id' => $entity_id,
+        'is_new_lesson' => $is_new_lesson
+    );
+}
+//cau lenh test session
+if (
+    $_SERVER['REQUEST_METHOD'] !== 'POST' &&
+    (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || $_SERVER['HTTP_X_REQUESTED_WITH'] !== 'XMLHttpRequest')
+) {
+    if (session_status() === PHP_SESSION_NONE) {
+        @session_start();
+    }
+    echo '<script>';
+    echo 'console.log("Session data:", ' . json_encode($_SESSION) . ');';
+    echo '</script>';
+
+    // Test study count update if test parameter is present
+    if (isset($_GET['test_study_count']) && !empty($_SESSION['student_id'])) {
+        $test_entity_id = isset($_GET['entity_id']) ? intval($_GET['entity_id']) : 8069;
+        $student_id = intval($_SESSION['student_id']);
+
+        echo '<script>console.log("=== MANUAL TEST START ===");</script>';
+        echo '<script>console.log("Testing with entity_id: ' . $test_entity_id . ', student_id: ' . $student_id . '");</script>';
+
+        // Get current stats
+        $before_stats = wnsp_get_student_study_stats($student_id);
+        echo '<script>console.log("Before stats:", ' . json_encode($before_stats) . ');</script>';
+
+        // Test update
+        $result = wnsp_update_student_study_counts($test_entity_id, true);
+
+        // Get after stats
+        $after_stats = wnsp_get_student_study_stats($student_id);
+        echo '<script>console.log("After stats:", ' . json_encode($after_stats) . ');</script>';
+        echo '<script>console.log("Update result: ' . ($result ? 'success' : 'failed') . '");</script>';
+        echo '<script>console.log("=== MANUAL TEST END ===");</script>';
+    }
+}
