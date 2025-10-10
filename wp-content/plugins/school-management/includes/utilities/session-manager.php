@@ -73,6 +73,11 @@ class StudentSessionManager
             'student_id' => $student_id,
             'student_name' => $student_name,
             'student_of' => $student_of,
+            'user_ip' => isset($_SESSION['user_ip']) ? $_SESSION['user_ip'] : '',
+            'device_browser' => isset($_SESSION['device_browser']) ? $_SESSION['device_browser'] : '',
+            'device_os' => isset($_SESSION['device_os']) ? $_SESSION['device_os'] : '',
+            'device_platform' => isset($_SESSION['device_platform']) ? $_SESSION['device_platform'] : '',
+            'login_time' => isset($_SESSION['login_time']) ? $_SESSION['login_time'] : 0,
         );
     }
 
@@ -127,17 +132,35 @@ class StudentSessionManager
         // Tìm student có password matching
         foreach ($students as $student) {
             $stored_password = get_post_meta($student->ID, self::PASSWORD_META_KEY, true);
+            $student_name = $student->post_title;
+            $student_of = get_post_meta($student->ID, 'student_of', true);
 
             // So sánh password (có thể thay bằng password_verify() nếu dùng hash)
             if ($password === $stored_password) {
+                // Lấy thông tin thiết bị và IP
+                $user_ip = self::getUserIP();
+                $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+                $device_info = self::parseUserAgent($user_agent);
+
                 // Đăng nhập thành công - set session
                 $_SESSION[self::SESSION_KEY] = $student->ID;
+                $_SESSION['student_name'] = $student_name;
+                $_SESSION['student_of'] = $student_of;
+                $_SESSION['login_time'] = time();
+                $_SESSION['last_activity'] = time();
+                $_SESSION['user_ip'] = $user_ip;
+                $_SESSION['user_agent'] = $user_agent;
+                $_SESSION['device_browser'] = $device_info['browser'];
+                $_SESSION['device_os'] = $device_info['os'];
+                $_SESSION['device_platform'] = $device_info['platform'];
 
                 return array(
                     'success' => true,
                     'student_id' => $student->ID,
-                    'student_name' => $student->post_title,
-                    'student_of' => get_post_meta($student->ID, 'student_of', true),
+                    'student_name' => $student_name,
+                    'student_of' => $student_of,
+                    'user_ip' => $user_ip,
+                    'device_info' => $device_info,
                     'message' => 'Login successful'
                 );
             }
@@ -159,8 +182,23 @@ class StudentSessionManager
     {
         self::ensureSessionStarted();
 
-        // Xóa student session
-        unset($_SESSION[self::SESSION_KEY]);
+        // Xóa tất cả student session data
+        $session_keys_to_remove = array(
+            self::SESSION_KEY,
+            'student_name',
+            'student_of',
+            'login_time',
+            'last_activity',
+            'user_ip',
+            'user_agent',
+            'device_browser',
+            'device_os',
+            'device_platform'
+        );
+
+        foreach ($session_keys_to_remove as $key) {
+            unset($_SESSION[$key]);
+        }
 
         return array(
             'success' => true,
@@ -174,7 +212,24 @@ class StudentSessionManager
     private static function clearSession()
     {
         self::ensureSessionStarted();
-        unset($_SESSION[self::SESSION_KEY]);
+
+        // Xóa tất cả student session data
+        $session_keys_to_remove = array(
+            self::SESSION_KEY,
+            'student_name',
+            'student_of',
+            'login_time',
+            'last_activity',
+            'user_ip',
+            'user_agent',
+            'device_browser',
+            'device_os',
+            'device_platform'
+        );
+
+        foreach ($session_keys_to_remove as $key) {
+            unset($_SESSION[$key]);
+        }
     }
 
     /**
@@ -278,6 +333,114 @@ class StudentSessionManager
             'logged_in_student' => isset($_SESSION[self::SESSION_KEY]) ? $_SESSION[self::SESSION_KEY] : 0,
             'all_session_keys' => array_keys($_SESSION),
             'session_cookie_params' => session_get_cookie_params(),
+        );
+    }
+
+    /**
+     * Lấy địa chỉ IP của user (xử lý cả proxy và load balancer)
+     * 
+     * @return string IP address
+     */
+    private static function getUserIP()
+    {
+        $ip_keys = array(
+            'HTTP_CF_CONNECTING_IP',     // Cloudflare
+            'HTTP_CLIENT_IP',            // Proxy
+            'HTTP_X_FORWARDED_FOR',      // Load balancer/proxy
+            'HTTP_X_FORWARDED',          // Proxy
+            'HTTP_X_CLUSTER_CLIENT_IP',  // Cluster
+            'HTTP_FORWARDED_FOR',        // Proxy
+            'HTTP_FORWARDED',            // Proxy
+            'REMOTE_ADDR'                // Standard
+        );
+
+        foreach ($ip_keys as $key) {
+            if (!empty($_SERVER[$key])) {
+                $ip = trim($_SERVER[$key]);
+                // Nếu có nhiều IP (qua proxy), lấy IP đầu tiên
+                if (strpos($ip, ',') !== false) {
+                    $ip = explode(',', $ip)[0];
+                }
+                $ip = trim($ip);
+                // Validate IP
+                if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                    return $ip;
+                }
+            }
+        }
+
+        // Fallback to REMOTE_ADDR nếu không tìm thấy public IP
+        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : 'unknown';
+    }
+
+    /**
+     * Parse User Agent để lấy thông tin trình duyệt và hệ điều hành
+     * 
+     * @param string $user_agent User agent string
+     * @return array Thông tin thiết bị
+     */
+    private static function parseUserAgent($user_agent)
+    {
+        if (empty($user_agent)) {
+            return array(
+                'browser' => 'Unknown',
+                'os' => 'Unknown',
+                'platform' => 'Unknown'
+            );
+        }
+
+        // Detect Browser
+        $browser = 'Unknown';
+        if (preg_match('/Edge\/([0-9\.]+)/', $user_agent)) {
+            $browser = 'Microsoft Edge';
+        } elseif (preg_match('/Chrome\/([0-9\.]+)/', $user_agent)) {
+            $browser = 'Google Chrome';
+        } elseif (preg_match('/Firefox\/([0-9\.]+)/', $user_agent)) {
+            $browser = 'Mozilla Firefox';
+        } elseif (preg_match('/Safari\/([0-9\.]+)/', $user_agent) && !preg_match('/Chrome/', $user_agent)) {
+            $browser = 'Safari';
+        } elseif (preg_match('/Opera\/([0-9\.]+)/', $user_agent) || preg_match('/OPR\/([0-9\.]+)/', $user_agent)) {
+            $browser = 'Opera';
+        } elseif (preg_match('/MSIE ([0-9\.]+)/', $user_agent) || preg_match('/Trident\//', $user_agent)) {
+            $browser = 'Internet Explorer';
+        }
+
+        // Detect Operating System
+        $os = 'Unknown';
+        if (preg_match('/Windows NT 10/', $user_agent)) {
+            $os = 'Windows 10';
+        } elseif (preg_match('/Windows NT 6\.3/', $user_agent)) {
+            $os = 'Windows 8.1';
+        } elseif (preg_match('/Windows NT 6\.2/', $user_agent)) {
+            $os = 'Windows 8';
+        } elseif (preg_match('/Windows NT 6\.1/', $user_agent)) {
+            $os = 'Windows 7';
+        } elseif (preg_match('/Windows NT/', $user_agent)) {
+            $os = 'Windows';
+        } elseif (preg_match('/Mac OS X ([0-9_\.]+)/', $user_agent, $matches)) {
+            $os = 'Mac OS X ' . str_replace('_', '.', $matches[1]);
+        } elseif (preg_match('/iPhone OS ([0-9_\.]+)/', $user_agent, $matches)) {
+            $os = 'iOS ' . str_replace('_', '.', $matches[1]);
+        } elseif (preg_match('/Android ([0-9\.]+)/', $user_agent, $matches)) {
+            $os = 'Android ' . $matches[1];
+        } elseif (preg_match('/Linux/', $user_agent)) {
+            $os = 'Linux';
+        }
+
+        // Detect Platform/Device Type
+        $platform = 'Desktop';
+        if (preg_match('/Mobile|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/', $user_agent)) {
+            if (preg_match('/iPad/', $user_agent)) {
+                $platform = 'Tablet';
+            } else {
+                $platform = 'Mobile';
+            }
+        }
+
+        return array(
+            'browser' => $browser,
+            'os' => $os,
+            'platform' => $platform
         );
     }
 }
